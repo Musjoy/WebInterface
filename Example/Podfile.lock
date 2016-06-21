@@ -1,0 +1,42 @@
+PODS:
+  - ActionProtocol (0.1.0)
+  - AFNetworking/NSURLSession (3.1.0):
+    - AFNetworking/Reachability
+    - AFNetworking/Security
+    - AFNetworking/Serialization
+  - AFNetworking/Reachability (3.1.0)
+  - AFNetworking/Security (3.1.0)
+  - AFNetworking/Serialization (3.1.0)
+  - DBModel (0.1.2):
+    - DBModel/DBModel (= 0.1.2)
+    - ModuleCapability (~> 0.1.2)
+  - DBModel/DBModel (0.1.2):
+    - ModuleCapability (~> 0.1.2)
+  - MJWebService (0.1.1):
+    - AFNetworking/NSURLSession (~> 3.1.0)
+    - ModuleCapability (~> 0.1.1)
+  - ModuleCapability (0.1.2)
+  - WebInterface (0.1.0):
+    - ActionProtocol (~> 0.1.0)
+    - DBModel (~> 0.1.2)
+    - MJWebService (~> 0.1.1)
+    - ModuleCapability (~> 0.1.2)
+
+DEPENDENCIES:
+  - WebInterface (from `../`)
+
+EXTERNAL SOURCES:
+  WebInterface:
+    :path: ../
+
+SPEC CHECKSUMS:
+  ActionProtocol: f5279c482de3abb31ea34b54a0ecfaf8d5cca561
+  AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
+  DBModel: e523e0066ba5adebde9a76244b95bd050a28a42e
+  MJWebService: ebe871b8f7cf648e1a49daf071ada69b902d8270
+  ModuleCapability: 35cea7154ff855362682e90ecf1be529a533c931
+  WebInterface: 80e32d664aeca20d9da1d5dcc3d8f4c142906eb3
+
+PODFILE CHECKSUM: 0a5268ecd38c4e8da8e02e37138b9662115554c5
+
+COCOAPODS: 1.0.1
