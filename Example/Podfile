@@ -1,0 +1,6 @@
+use_frameworks!
+target 'WebInterface_Tests' do
+  pod 'WebInterface', :path => '../'
+  
+  
+end
