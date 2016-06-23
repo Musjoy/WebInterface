@@ -15,11 +15,18 @@
 #else
 #include <sys/sysctl.h>
 #endif
+#ifdef MODULE_FILE_SOURCE
+#import "FileSource.h"
+#endif
 
 static NSMutableDictionary *s_dicRequests = nil;
 static NSString *s_serverActionUrl = nil;
 static long s_requestCount = 0;
 static DBRequest *s_requestModel = nil;
+
+static NSMutableDictionary *s_dicServerAPIs = nil;
+static NSCache *s_cacheServerAPIs = nil;
+
 
 #define kAppSys @1          // 客户端类型 (1-iOS, 2-Andorid)
 #ifdef DEBUG
@@ -395,6 +402,52 @@ static DBRequest *s_requestModel = nil;
                                                                          NSLocalizedDescriptionKey:message,
                                                                          NSLocalizedFailureReasonErrorKey:message
                                                                          }];
+}
+
+
+#pragma mark - ServerAPI
+
++ (NSString *)latestActionFor:(NSString *)aAction
+{
+    if (s_dicServerAPIs == nil) {
+        s_dicServerAPIs = getPlistFileData(PLIST_SERVER_APIS);
+        if (s_dicServerAPIs == nil) {
+            s_dicServerAPIs = [[NSMutableDictionary alloc] init];
+        }
+        s_cacheServerAPIs = [[NSCache alloc] init];
+    }
+    
+    NSString *newAction = [s_cacheServerAPIs objectForKey:aAction];
+    if (newAction.length > 0) {
+        return newAction;
+    }
+    
+    newAction = [s_dicServerAPIs objectForKey:aAction];;
+    if (newAction.length > 0) {
+        NSNumber *deviceId = [self getRequestModel].head.deviceId;
+        if ([deviceId longLongValue] > 0) {
+            if ([newAction rangeOfString:@"?"].length == 0) {
+                newAction = [newAction stringByAppendingFormat:@"?deviceId=%ld", deviceId.longLongValue];
+            } else {
+                newAction = [newAction stringByAppendingFormat:@"&deviceId=%ld", deviceId.longLongValue];
+            }
+            [s_cacheServerAPIs setObject:newAction forKey:aAction];
+        }
+    } else {
+        newAction = aAction;
+    }
+    return newAction;
+}
+
++ (void)serverGet:(NSString *)action completion:(ActionCompleteBlock)completion
+{
+    NSString *newAction = [self latestActionFor:action];
+    NSString *serverUrl = [NSString stringWithFormat:@"%@/%@", kServerUrl, newAction];
+    [MJWebService startGet:serverUrl body:nil success:^(id respond) {
+        completion(YES, @"", respond);
+    } failure:^(NSError *error) {
+        completion(NO, @"", error);
+    }];
 }
 
 

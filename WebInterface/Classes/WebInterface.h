@@ -10,6 +10,12 @@
 #import "ActionProtocol.h"
 #import "DBRequest.h"
 
+/// 服务器API列表
+#ifndef PLIST_SERVER_APIS
+#define PLIST_SERVER_APIS  @"server_apis"
+#endif
+
+
 @interface WebInterface : NSObject
 
 #pragma mark -
@@ -40,5 +46,11 @@
 
 + (DBRequest *)getRequestModel;
 
+#pragma mark - ServerAPI
+
++ (NSString *)latestActionFor:(NSString *)aAction;
+
++ (void)serverGet:(NSString *)action
+       completion:(ActionCompleteBlock)completion;
 
 @end
