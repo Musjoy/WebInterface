@@ -410,7 +410,7 @@ static NSCache *s_cacheServerAPIs = nil;
 + (NSString *)latestActionFor:(NSString *)aAction
 {
     if (s_dicServerAPIs == nil) {
-        s_dicServerAPIs = getFileData(PLIST_SERVER_APIS);
+        s_dicServerAPIs = getFileData(FILE_NAME_SERVER_APIS);
         if (s_dicServerAPIs == nil) {
             s_dicServerAPIs = [[NSMutableDictionary alloc] init];
         }

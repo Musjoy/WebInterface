@@ -11,8 +11,8 @@
 #import "MJRequest.h"
 
 /// 服务器API列表
-#ifndef PLIST_SERVER_APIS
-#define PLIST_SERVER_APIS  @"server_apis"
+#ifndef FILE_NAME_SERVER_APIS
+#define FILE_NAME_SERVER_APIS  @"server_apis"
 #endif
 
 
