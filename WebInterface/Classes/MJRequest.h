@@ -1,17 +1,17 @@
 //
-//  DBRequest.h
+//  MJRequest.h
 //  Common
 //
 //  Created by 黄磊 on 16/4/20.
 //  Copyright © 2016年 Musjoy. All rights reserved.
 //
 
-#import "DBRequestHeader.h"
+#import "MJRequestHeader.h"
 
-@interface DBRequest : DBModel
+@interface MJRequest : DBModel
 
 @property (nonatomic, strong) NSString *mac;                /**< 请求唯一标示 */
-@property (nonatomic, strong) DBRequestHeader *head;        /**< 请求head */
+@property (nonatomic, strong) MJRequestHeader *head;        /**< 请求head */
 @property (nonatomic, strong) NSDictionary *body;           /**< 请求body */
 
 @end

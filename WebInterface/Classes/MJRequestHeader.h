@@ -1,5 +1,5 @@
 //
-//  DBRequestHeader.h
+//  MJRequestHeader.h
 //  Common
 //
 //  Created by 黄磊 on 16/4/20.
@@ -8,7 +8,7 @@
 
 #import "DBModel.h"
 
-@interface DBRequestHeader : DBModel
+@interface MJRequestHeader : DBModel
 
 @property (nonatomic, strong) NSString *method;                     /**< 调用的方法 */
 

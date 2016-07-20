@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "ActionProtocol.h"
-#import "DBRequest.h"
+#import "MJRequest.h"
 
 /// 服务器API列表
 #ifndef PLIST_SERVER_APIS
@@ -44,7 +44,7 @@
                 completion:(ActionCompleteBlock)completion;
 
 
-+ (DBRequest *)getRequestModel;
++ (MJRequest *)getRequestModel;
 
 #pragma mark - ServerAPI
 

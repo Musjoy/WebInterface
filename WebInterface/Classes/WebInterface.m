@@ -8,7 +8,7 @@
 
 #import "WebInterface.h"
 #import "MJWebService.h"
-#import "DBRespond.h"
+#import "MJRespond.h"
 #import "ResultModel.h"
 #ifdef MODULE_DEVICE_HELPER
 #import "MJDeviceHelper.h"
@@ -22,7 +22,7 @@
 static NSMutableDictionary *s_dicRequests = nil;
 static NSString *s_serverActionUrl = nil;
 static long s_requestCount = 0;
-static DBRequest *s_requestModel = nil;
+static MJRequest *s_requestModel = nil;
 
 static NSMutableDictionary *s_dicServerAPIs = nil;
 static NSCache *s_cacheServerAPIs = nil;
@@ -91,13 +91,13 @@ static NSCache *s_cacheServerAPIs = nil;
                            {
                                
                                NSError *err = nil;
-                               DBRespond *aRespond = nil;
+                               MJRespond *aRespond = nil;
                                @try {
                                    // 解析json
                                    if ([respond isKindOfClass:[NSDictionary class]]) {
-                                       aRespond = [[DBRespond alloc] initWithDictionary:respond error:&err];
+                                       aRespond = [[MJRespond alloc] initWithDictionary:respond error:&err];
                                    } else {
-                                       aRespond = [[DBRespond alloc] initWithString:respond error:&err];
+                                       aRespond = [[MJRespond alloc] initWithString:respond error:&err];
                                    }
                                }
                                @catch (NSException *exception) {
@@ -130,7 +130,7 @@ static NSCache *s_cacheServerAPIs = nil;
 + (NSDictionary *)getWholeRequestData:(NSDictionary *)requestBody andMethod:(NSString *)theMethod
 {
     // 拼接发送数据
-    DBRequest *aRequestModel = [self getRequestModel];
+    MJRequest *aRequestModel = [self getRequestModel];
     NSDictionary *aSendDic = nil;
     @synchronized(aRequestModel) {
         aRequestModel.mac = [[NSUUID UUID] UUIDString];
@@ -141,11 +141,11 @@ static NSCache *s_cacheServerAPIs = nil;
     return aSendDic;
 }
 
-+ (DBRequest *)getRequestModel
++ (MJRequest *)getRequestModel
 {
     if (s_requestModel == nil) {
-        s_requestModel = [[DBRequest alloc] init];
-        DBRequestHeader *head = [[DBRequestHeader alloc] init];
+        s_requestModel = [[MJRequest alloc] init];
+        MJRequestHeader *head = [[MJRequestHeader alloc] init];
 #ifdef MODULE_DEVICE_HELPER
         head.deviceUUID = [MJDeviceHelper getDeviceID];
         head.deviceVersion = [MJDeviceHelper getDeviceVersion];
@@ -170,8 +170,8 @@ static NSCache *s_cacheServerAPIs = nil;
     return s_requestModel;
 }
 
-// 从DBRespond转换成ResultModel
-+ (ResultModel *)getResultWithRespond:(DBRespond *)aRespond
+// 从MJRespond转换成ResultModel
++ (ResultModel *)getResultWithRespond:(MJRespond *)aRespond
                           returnClass:(Class)returnClass
                              andError:(NSError**)err
 {
@@ -252,7 +252,7 @@ static NSCache *s_cacheServerAPIs = nil;
  *
  *	@return	void
  */
-+ (void)succeedWithResult:(DBRespond *)respond
++ (void)succeedWithResult:(MJRespond *)respond
                  describe:(NSString *)describe
               returnClass:(Class)returnClass
                  callback:(ActionCompleteBlock)completion
@@ -410,7 +410,7 @@ static NSCache *s_cacheServerAPIs = nil;
 + (NSString *)latestActionFor:(NSString *)aAction
 {
     if (s_dicServerAPIs == nil) {
-        s_dicServerAPIs = getPlistFileData(PLIST_SERVER_APIS);
+        s_dicServerAPIs = getFileData(PLIST_SERVER_APIS);
         if (s_dicServerAPIs == nil) {
             s_dicServerAPIs = [[NSMutableDictionary alloc] init];
         }
@@ -441,13 +441,20 @@ static NSCache *s_cacheServerAPIs = nil;
 
 + (void)serverGet:(NSString *)action completion:(ActionCompleteBlock)completion
 {
+    if (completion == NULL) {
+        completion = ^(BOOL isSucceed, NSString *message, id data) {};
+    }
     NSString *newAction = [self latestActionFor:action];
+#ifdef kServerUrl
     NSString *serverUrl = [NSString stringWithFormat:@"%@/%@", kServerUrl, newAction];
     [MJWebService startGet:serverUrl body:nil success:^(id respond) {
         completion(YES, @"", respond);
     } failure:^(NSError *error) {
         completion(NO, @"", error);
     }];
+#else
+    completion(NO, @"Server url not set", nil);
+#endif
 }
 
 

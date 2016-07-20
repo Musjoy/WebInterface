@@ -1,5 +1,5 @@
 //
-//  DBRespond.h
+//  MJRespond.h
 //  Common
 //
 //  Created by 黄磊 on 16/4/20.
@@ -8,7 +8,7 @@
 
 #import "DBModel.h"
 
-@interface DBRespond : DBModel
+@interface MJRespond : DBModel
 
 @property (nonatomic, strong) NSString *mac;                /**< 请求返回的唯一标识 */
 @property (nonatomic, strong) NSDictionary *head;           /**< 请求返回head */
