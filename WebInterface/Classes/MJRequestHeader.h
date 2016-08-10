@@ -14,6 +14,7 @@
 
 @property (nonatomic, strong) NSNumber<DBInt> *deviceId;            /**< 设备ID，当这个值存在时，下面四个可选 */
 @property (nonatomic, strong) NSString *deviceUUID;                 /**< 设备唯一标示 */
+@property (nonatomic, strong) NSString *deviceName;                 /**< 设备名称 */
 @property (nonatomic, strong) NSString *deviceVersion;              /**< 设备版本 */
 @property (nonatomic, strong) NSString *sysVersion;                 /**< 系统版本号 */
 @property (nonatomic, strong) NSNumber<DBInt> *sysType;             /**< 系统类型 0-未知设备 1-iOS 2-Android */

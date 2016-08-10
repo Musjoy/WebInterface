@@ -71,7 +71,7 @@ static NSCache *s_cacheServerAPIs = nil;
 #ifdef kServerAction
         s_serverActionUrl = kServerAction;
 #else
-#warning @"kServerAction is not define!"
+#warning @"kServerAction is not defined!"
 #endif
     }
     
@@ -85,11 +85,13 @@ static NSCache *s_cacheServerAPIs = nil;
     // 拼接发送数据
     NSDictionary *aSendDic = [self getWholeRequestData:body andMethod:action];
     
+    LogInfo(@"Server request : \n\n%@&jsonData=%@\n\n", pathUrl, aSendDic[@"jsonData"]);
+    
     BOOL isRequestStart = [MJWebService startPost:pathUrl
                                              body:aSendDic
                                           success:^(id respond)
                            {
-                               
+                               LogInfo(@"===>>>  Respond for %@ = \n%@", action, respond);
                                NSError *err = nil;
                                MJRespond *aRespond = nil;
                                @try {
@@ -146,6 +148,7 @@ static NSCache *s_cacheServerAPIs = nil;
     if (s_requestModel == nil) {
         s_requestModel = [[MJRequest alloc] init];
         MJRequestHeader *head = [[MJRequestHeader alloc] init];
+        head.deviceName = [UIDevice currentDevice].name;
 #ifdef MODULE_DEVICE_HELPER
         head.deviceUUID = [MJDeviceHelper getDeviceID];
         head.deviceVersion = [MJDeviceHelper getDeviceVersion];
