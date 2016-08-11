@@ -18,11 +18,30 @@ Pod::Spec.new do |s|
 
   s.ios.deployment_target = '7.0'
 
-  s.source_files = 'WebInterface/Classes/**/*'
-  
+  s.default_subspec = 'Core'
+
   s.user_target_xcconfig = {
     'GCC_PREPROCESSOR_DEFINITIONS' => 'MODULE_WEB_INTERFACE'
   }
+
+  s.subspec 'Core' do |ss|
+    ss.source_files = 'WebInterface/Classes/*.{h,m}'
+  end
+  
+  s.subspec 'ListRequest' do |ss|
+    ss.source_files = 'WebInterface/Classes/ListRequest/*.{h,m}'
+    ss.user_target_xcconfig = {
+      'GCC_PREPROCESSOR_DEFINITIONS' => 'MODULE_WEB_INTERFACE_LIST_REQUEST'
+    }
+    pch_AF = <<-EOS
+#import "ModuleCapability.h"
+#ifndef MODULE_WEB_INTERFACE_LIST_REQUEST
+#define MODULE_WEB_INTERFACE_LIST_REQUEST
+#endif
+    EOS
+    ss.prefix_header_contents = pch_AF
+
+  end
 
   s.dependency 'MJWebService', '~> 0.1.1'
   s.dependency 'ActionProtocol', '~> 0.1.0'

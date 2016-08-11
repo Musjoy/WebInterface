@@ -126,6 +126,73 @@ static NSCache *s_cacheServerAPIs = nil;
 }
 
 
+#ifdef MODULE_WEB_INTERFACE_LIST_REQUEST
++ (NSString *)fetchDataListWithModel:(DBListRequest *)requestModel completion:(ActionCompleteBlock)completion
+{
+    if (completion == NULL) {
+        completion = ^(BOOL isSucceed, NSString *message, id data) {};
+    }
+    NSString *describe = requestModel.listDecs ?: @"Get data list";
+    
+    NSString *chechResult = [requestModel chechContent];
+    if (chechResult.length > 0) {
+        LogError(@"%@", chechResult);
+        completion(NO, @"Get data list failed", nil);
+        return nil;
+    }
+    Class returnClass = requestModel.receiveClass;
+    Class theReturnClass = [DBDataList class];
+    if (requestModel.receiveClass && [requestModel.receiveClass isSubclassOfClass:[DBDataList class]]) {
+        theReturnClass = returnClass;
+    }
+    NSMutableDictionary *sendDic = [NSMutableDictionary dictionaryWithDictionary:requestModel.requestParam];
+    [sendDic setObject:[NSNumber numberWithInteger:requestModel.pageNo] forKey:@"pageNo"];
+    [sendDic setObject:[NSNumber numberWithInteger:requestModel.pageSize] forKey:@"pageSize"];
+    
+    return [self startRequest:requestModel.serverAction
+                     describe:describe
+                         body:sendDic
+                  returnClass:theReturnClass
+                   completion:^(BOOL isSucceed, NSString *message, id data)
+            {
+                if (isSucceed) {
+                    // 处理result
+                    NSError *err = nil;
+                    NSMutableArray *arr = [[NSMutableArray alloc] init];
+                    DBDataList *theDataList = data;
+                    @try {
+                        if (isSucceed) {
+                            NSArray *aDataList = [theDataList valueForKey:@"dataList"];
+                            if (aDataList && [aDataList isKindOfClass:[NSArray class]]) {
+                                if (returnClass && ![returnClass isSubclassOfClass:[DBDataList class]]) {
+                                    for (NSDictionary *dic in aDataList) {
+                                        DBModel *model = [[returnClass alloc] initWithDictionary:dic error:&err];
+                                        [arr addObject:model];
+                                    }
+                                }
+                                else {
+                                    [arr addObjectsFromArray:aDataList];
+                                }
+                            }
+                        }
+                    }
+                    @catch (NSException *exception) {
+                        LogError(@"exception: %@ ==== Error: %@", exception, err);
+                    }
+                    @finally {
+                        theDataList.theDataList = [[NSArray alloc] initWithArray:arr];
+                        completion(isSucceed, message, theDataList);
+                    }
+                }
+                else {
+                    completion(isSucceed, message, data);
+                }
+            }];
+    
+}
+#endif
+
+
 #pragma mark - Private
 
 // 拼装 request data

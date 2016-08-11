@@ -9,6 +9,11 @@
 #import <Foundation/Foundation.h>
 #import "ActionProtocol.h"
 #import "MJRequest.h"
+#if __has_include("DBListRequest.h")
+#define MODULE_WEB_INTERFACE_LIST_REQUEST
+#import "DBListRequest.h"
+#import "DBDataList.h"
+#endif
 
 /// 服务器API列表
 #ifndef FILE_NAME_SERVER_APIS
@@ -42,6 +47,12 @@
                       body:(NSDictionary *)body
                returnClass:(Class)returnClass
                 completion:(ActionCompleteBlock)completion;
+
+#ifdef MODULE_WEB_INTERFACE_LIST_REQUEST
+/** 通用列表请求 */
++ (NSString *)fetchDataListWithModel:(DBListRequest *)requestModel
+                          completion:(ActionCompleteBlock)completion;
+#endif
 
 
 + (MJRequest *)getRequestModel;

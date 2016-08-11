@@ -21,6 +21,12 @@ PODS:
     - DBModel (~> 0.1.2)
     - MJWebService (~> 0.1.1)
     - ModuleCapability (~> 0.1.2)
+    - WebInterface/Core (= 0.1.0)
+  - WebInterface/Core (0.1.0):
+    - ActionProtocol (~> 0.1.0)
+    - DBModel (~> 0.1.2)
+    - MJWebService (~> 0.1.1)
+    - ModuleCapability (~> 0.1.2)
 
 DEPENDENCIES:
   - WebInterface (from `../`)
@@ -35,7 +41,7 @@ SPEC CHECKSUMS:
   DBModel: e523e0066ba5adebde9a76244b95bd050a28a42e
   MJWebService: ebe871b8f7cf648e1a49daf071ada69b902d8270
   ModuleCapability: 35cea7154ff855362682e90ecf1be529a533c931
-  WebInterface: 80e32d664aeca20d9da1d5dcc3d8f4c142906eb3
+  WebInterface: 36b5e588e6329206e29502084b96f7f4b6bb5c94
 
 PODFILE CHECKSUM: 0a5268ecd38c4e8da8e02e37138b9662115554c5
 
