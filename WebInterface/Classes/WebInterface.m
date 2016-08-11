@@ -480,7 +480,7 @@ static NSCache *s_cacheServerAPIs = nil;
 + (NSString *)latestActionFor:(NSString *)aAction
 {
     if (s_dicServerAPIs == nil) {
-        s_dicServerAPIs = getFileData(FILE_NAME_SERVER_APIS);
+        s_dicServerAPIs = [getFileData(FILE_NAME_SERVER_APIS) mutableCopy];
         if (s_dicServerAPIs == nil) {
             s_dicServerAPIs = [[NSMutableDictionary alloc] init];
         }
@@ -497,9 +497,9 @@ static NSCache *s_cacheServerAPIs = nil;
         NSNumber *deviceId = [self getRequestModel].head.deviceId;
         if ([deviceId longLongValue] > 0) {
             if ([newAction rangeOfString:@"?"].length == 0) {
-                newAction = [newAction stringByAppendingFormat:@"?deviceId=%ld", deviceId.longLongValue];
+                newAction = [newAction stringByAppendingFormat:@"?deviceId=%lld", deviceId.longLongValue];
             } else {
-                newAction = [newAction stringByAppendingFormat:@"&deviceId=%ld", deviceId.longLongValue];
+                newAction = [newAction stringByAppendingFormat:@"&deviceId=%lld", deviceId.longLongValue];
             }
             [s_cacheServerAPIs setObject:newAction forKey:aAction];
         }
@@ -514,8 +514,8 @@ static NSCache *s_cacheServerAPIs = nil;
     if (completion == NULL) {
         completion = ^(BOOL isSucceed, NSString *message, id data) {};
     }
-    NSString *newAction = [self latestActionFor:action];
 #ifdef kServerUrl
+    NSString *newAction = [self latestActionFor:action];
     NSString *serverUrl = [NSString stringWithFormat:@"%@/%@", kServerUrl, newAction];
     [MJWebService startGet:serverUrl body:nil success:^(id respond) {
         completion(YES, @"", respond);

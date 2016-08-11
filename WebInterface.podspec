@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'WebInterface'
-  s.version          = '0.1.0'
+  s.version          = '0.1.1'
   s.summary          = 'This is a generic web interface.'
 
   s.homepage         = 'https://github.com/Musjoy/WebInterface'
@@ -26,10 +26,12 @@ Pod::Spec.new do |s|
 
   s.subspec 'Core' do |ss|
     ss.source_files = 'WebInterface/Classes/*.{h,m}'
+    ss.public_header_files = 'WebInterface/Classes/*.h'
   end
   
   s.subspec 'ListRequest' do |ss|
     ss.source_files = 'WebInterface/Classes/ListRequest/*.{h,m}'
+    ss.public_header_files = 'WebInterface/Classes/ListRequest/*.h'
     ss.user_target_xcconfig = {
       'GCC_PREPROCESSOR_DEFINITIONS' => 'MODULE_WEB_INTERFACE_LIST_REQUEST'
     }
