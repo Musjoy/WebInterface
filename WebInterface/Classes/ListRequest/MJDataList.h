@@ -6,6 +6,7 @@
 //  Copyright © 2016年 Musjoy. All rights reserved.
 //
 
+#import <ModuleCapability/ModuleCapability.h>
 #import HEADER_MODEL
 
 @interface MJDataList : MODEL_BASE_CLASS
