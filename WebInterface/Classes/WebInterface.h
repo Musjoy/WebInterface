@@ -8,11 +8,11 @@
 
 #import <Foundation/Foundation.h>
 #import "ActionProtocol.h"
-#import "MJRequest.h"
-#if __has_include("DBListRequest.h")
+#import "MJRequestHeader.h"
+#if __has_include("MJListRequest.h")
 #define MODULE_WEB_INTERFACE_LIST_REQUEST
-#import "DBListRequest.h"
-#import "DBDataList.h"
+#import "MJListRequest.h"
+#import "MJDataList.h"
 #endif
 
 /// 服务器API列表
@@ -45,17 +45,27 @@
 + (NSString *)startRequest:(NSString *)action
                   describe:(NSString *)describe
                       body:(NSDictionary *)body
-               returnClass:(Class)returnClass
                 completion:(ActionCompleteBlock)completion;
 
+#ifdef MODULE_DB_MODEL
++ (NSString *)startRequest:(NSString *)action
+                  describe:(NSString *)describe
+                      body:(NSDictionary *)body
+               returnClass:(Class)returnClass
+                completion:(ActionCompleteBlock)completion;
+#endif
+
 #ifdef MODULE_WEB_INTERFACE_LIST_REQUEST
-/** 通用列表请求 */
-+ (NSString *)fetchDataListWithModel:(DBListRequest *)requestModel
+/** 通用列表请求 */ 
++ (NSString *)fetchDataListWithModel:(MJListRequest *)requestModel
                           completion:(ActionCompleteBlock)completion;
 #endif
 
+/// 获取请求头部信息
++ (MJRequestHeader *)getRequestHeaderModel;
 
-+ (MJRequest *)getRequestModel;
+/// 重置请求model，一般是在请求头部信息修改是重置
++ (void)resetRequestMode;
 
 #pragma mark - ServerAPI
 

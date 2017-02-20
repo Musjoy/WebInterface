@@ -8,8 +8,6 @@
 
 #import "WebInterface.h"
 #import "MJWebService.h"
-#import "MJRespond.h"
-#import "ResultModel.h"
 #ifdef MODULE_DEVICE_HELPER
 #import "MJDeviceHelper.h"
 #else
@@ -19,10 +17,12 @@
 #import "FileSource.h"
 #endif
 
+
 static NSMutableDictionary *s_dicRequests = nil;
 static NSString *s_serverActionUrl = nil;
 static long s_requestCount = 0;
-static MJRequest *s_requestModel = nil;
+static NSMutableDictionary *s_requestModel = nil;
+static MJRequestHeader *s_requestHeaderModel = nil;
 
 static NSMutableDictionary *s_dicServerAPIs = nil;
 static NSCache *s_cacheServerAPIs = nil;
@@ -59,6 +59,14 @@ static NSCache *s_cacheServerAPIs = nil;
 
 #pragma mark - 统一接口
 
++ (NSString *)startRequest:(NSString *)action
+                  describe:(NSString *)describe
+                      body:(NSDictionary *)body
+                completion:(ActionCompleteBlock)completion
+{
+    return [self startRequest:action describe:describe body:body returnClass:nil completion:completion];
+}
+
 /** 统一接口请求 */
 + (NSString *)startRequest:(NSString *)action
                   describe:(NSString *)describe
@@ -83,9 +91,10 @@ static NSCache *s_cacheServerAPIs = nil;
     NSString *pathUrl = [NSString stringWithFormat:@"%@%@", s_serverActionUrl, action];
 
     // 拼接发送数据
-    NSDictionary *aSendDic = [self getWholeRequestData:body andMethod:action];
+    NSDictionary *aSendDic = [self getWholeRequestData:body];
     
-    LogInfo(@"Server request : \n\n%@&jsonData=%@\n\n", pathUrl, aSendDic[@"jsonData"]);
+    LogInfo(@"Server request : \n\n%@\n", pathUrl);
+    LogDebug(@"Server request Data : %@\n", aSendDic);
     
     BOOL isRequestStart = [MJWebService startPost:pathUrl
                                              body:aSendDic
@@ -93,14 +102,55 @@ static NSCache *s_cacheServerAPIs = nil;
                            {
                                LogInfo(@"===>>>  Respond for %@ = \n%@", action, respond);
                                NSError *err = nil;
-                               MJRespond *aRespond = nil;
+                               NSDictionary *aRespond = nil;
                                @try {
                                    // 解析json
                                    if ([respond isKindOfClass:[NSDictionary class]]) {
-                                       aRespond = [[MJRespond alloc] initWithDictionary:respond error:&err];
+                                       aRespond = respond;
+                                   } else if ([respond isKindOfClass:[NSString class]]){
+                                       // 解析字符串
+                                       aRespond = objectFromString(respond, &err);
                                    } else {
-                                       aRespond = [[MJRespond alloc] initWithString:respond error:&err];
+                                       // 受到不支持的数据
+                                       err =  [self errorWithCode:-400 message:@"Receive unsupport data!"];
                                    }
+                                   if (err) {
+                                       [self failedWithError:err describe:describe callback:completion];
+                                       return;
+                                   }
+                                   // 判断网络请求状态
+                                   NSNumber *code = respond[@"code"];
+                                   // 存在code，判断code值，不存在，默认成功
+                                   if (code) {
+                                       if (code.intValue != 0) {
+                                           NSString *errMessage = respond[@"message"];
+                                           LogError(@"...>>>...\n\n 网络请求错误: \n{\n\tmethod = %@, %@\n}\n.", respond[@"method"], respond[@"message"]);
+                                           if (errMessage.length == 0) {
+                                               errMessage = sNetworkErrorMsg;
+                                           }
+                                           err = [self errorWithCode:[code integerValue] message:errMessage];
+                                           [self failedWithError:err describe:describe callback:completion];
+                                           return;
+                                       }
+                                   } else {
+                                       // 这里不存在code暂时默认为成功
+                                   }
+
+                                   // 解析网络数据
+                                   id result = aRespond[@"result"];
+                                   if (result == nil) {
+                                       result = aRespond;
+                                   }
+#ifdef MODULE_DB_MODEL
+                                   if (returnClass != nil) {
+                                       result = [[returnClass alloc] initWithDictionary:result error:&err];
+                                       if (err) {
+                                           [self failedWithError:err describe:describe callback:completion];
+                                           return;
+                                       }
+                                   }
+#endif
+                                   completion(YES, [describe stringByAppendingString:@" succeed"], result);
                                }
                                @catch (NSException *exception) {
                                    err = [self errorWithCode:-500 message:@"JSON Parse Error"];
@@ -110,13 +160,11 @@ static NSCache *s_cacheServerAPIs = nil;
                                        // 数据解析错误，出现该错误说明与服务器接口对应出了问题
                                        LogDebug(@"...>>>...JSON Parse Error: %@\n", err);
                                        [self failedWithError:err describe:describe callback:completion];
-                                   } else {
-                                       [self succeedWithResult:aRespond describe:describe returnClass:returnClass callback:completion];
                                    }
                                }
                            } failure:^(NSError *error)
                            {
-                               LogError(@"%@", error);
+                               LogDebug(@"%@", error.userInfo[[error.domain stringByAppendingString:@".error.data"]]);
                                [self failedWithError:error describe:describe callback:completion];
                            }];
     if (isRequestStart) {
@@ -127,7 +175,7 @@ static NSCache *s_cacheServerAPIs = nil;
 
 
 #ifdef MODULE_WEB_INTERFACE_LIST_REQUEST
-+ (NSString *)fetchDataListWithModel:(DBListRequest *)requestModel completion:(ActionCompleteBlock)completion
++ (NSString *)fetchDataListWithModel:(MJListRequest *)requestModel completion:(ActionCompleteBlock)completion
 {
     if (completion == NULL) {
         completion = ^(BOOL isSucceed, NSString *message, id data) {};
@@ -141,8 +189,8 @@ static NSCache *s_cacheServerAPIs = nil;
         return nil;
     }
     Class returnClass = requestModel.receiveClass;
-    Class theReturnClass = [DBDataList class];
-    if (requestModel.receiveClass && [requestModel.receiveClass isSubclassOfClass:[DBDataList class]]) {
+    Class theReturnClass = [MJDataList class];
+    if (requestModel.receiveClass && [requestModel.receiveClass isSubclassOfClass:[MJDataList class]]) {
         theReturnClass = returnClass;
     }
     NSMutableDictionary *sendDic = [NSMutableDictionary dictionaryWithDictionary:requestModel.requestParam];
@@ -152,35 +200,45 @@ static NSCache *s_cacheServerAPIs = nil;
     return [self startRequest:requestModel.serverAction
                      describe:describe
                          body:sendDic
+#ifdef MODULE_DB_MODEL
                   returnClass:theReturnClass
+#endif
                    completion:^(BOOL isSucceed, NSString *message, id data)
             {
                 if (isSucceed) {
                     // 处理result
                     NSError *err = nil;
                     NSMutableArray *arr = [[NSMutableArray alloc] init];
-                    DBDataList *theDataList = data;
+#ifdef MODULE_DB_MODEL
+                    MJDataList *theDataList = data;
+#else
+                    MJDataList *theDataList = [[theReturnClass alloc] initWithDictionary:data];
+#endif
                     @try {
                         if (isSucceed) {
+                            // 将dataList数据转到theDataList中
                             NSArray *aDataList = [theDataList valueForKey:@"dataList"];
+#ifdef MODULE_DB_MODEL
                             if (aDataList && [aDataList isKindOfClass:[NSArray class]]) {
-                                if (returnClass && ![returnClass isSubclassOfClass:[DBDataList class]]) {
+                                if (returnClass && ![returnClass isSubclassOfClass:[MJDataList class]]) {
                                     for (NSDictionary *dic in aDataList) {
                                         DBModel *model = [[returnClass alloc] initWithDictionary:dic error:&err];
                                         [arr addObject:model];
                                     }
-                                }
-                                else {
+                                } else {
                                     [arr addObjectsFromArray:aDataList];
                                 }
                             }
+#else
+                            arr = aDataList;
+#endif
                         }
                     }
                     @catch (NSException *exception) {
                         LogError(@"exception: %@ ==== Error: %@", exception, err);
                     }
                     @finally {
-                        theDataList.theDataList = [[NSArray alloc] initWithArray:arr];
+                        theDataList.theDataList = arr;
                         completion(isSucceed, message, theDataList);
                     }
                 }
@@ -193,171 +251,78 @@ static NSCache *s_cacheServerAPIs = nil;
 #endif
 
 
-#pragma mark - Private
-
-// 拼装 request data
-+ (NSDictionary *)getWholeRequestData:(NSDictionary *)requestBody andMethod:(NSString *)theMethod
++ (MJRequestHeader *)getRequestHeaderModel
 {
-    // 拼接发送数据
-    MJRequest *aRequestModel = [self getRequestModel];
-    NSDictionary *aSendDic = nil;
-    @synchronized(aRequestModel) {
-        aRequestModel.mac = [[NSUUID UUID] UUIDString];
-        aRequestModel.head.method = theMethod;
-        aRequestModel.body = requestBody;
-        aSendDic = [NSDictionary dictionaryWithObject:[aRequestModel toJSONString] forKey:@"jsonData"];
-    }
-    return aSendDic;
-}
-
-+ (MJRequest *)getRequestModel
-{
-    if (s_requestModel == nil) {
-        s_requestModel = [[MJRequest alloc] init];
-        MJRequestHeader *head = [[MJRequestHeader alloc] init];
-        head.deviceName = [UIDevice currentDevice].name;
+    
+    if (s_requestHeaderModel == nil) {
+        s_requestHeaderModel = [[MJRequestHeader alloc] init];
+        s_requestHeaderModel.deviceName = [UIDevice currentDevice].name;
 #ifdef MODULE_DEVICE_HELPER
-        head.deviceUUID = [MJDeviceHelper getDeviceID];
-        head.deviceVersion = [MJDeviceHelper getDeviceVersion];
-        head.sysVersion = [MJDeviceHelper getCurrentSysVersion];
+        s_requestHeaderModel.deviceUUID = [MJDeviceHelper getDeviceID];
+        s_requestHeaderModel.deviceVersion = [MJDeviceHelper getDeviceVersion];
+        s_requestHeaderModel.sysVersion = [MJDeviceHelper getCurrentSysVersion];
 #else
-        head.deviceUUID = [[UIDevice currentDevice].identifierForVendor UUIDString];
-        head.sysVersion = [@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]];
+        s_requestHeaderModel.deviceUUID = [[UIDevice currentDevice].identifierForVendor UUIDString];
+        s_requestHeaderModel.sysVersion = [@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]];
         size_t size;
         sysctlbyname("hw.machine", NULL, &size, NULL, 0);
         char *machine = malloc(size);
         sysctlbyname("hw.machine", machine, &size, NULL, 0);
         NSString *platform = [NSString stringWithCString:machine encoding:NSASCIIStringEncoding];
         free(machine);
-        head.deviceVersion = platform;
+        s_requestHeaderModel.deviceVersion = platform;
 #endif
         
-        head.sysType = (NSNumber<DBInt> *)kAppSys;
-        head.appVersion = kClientVersion;
-        head.appState = (NSNumber<DBInt> *)kAppState;
-        s_requestModel.head = head;
+        s_requestHeaderModel.sysType = kAppSys;
+#ifdef DEBUG
+        s_requestHeaderModel.appVersion = kClientVersion;
+#else
+        s_requestHeaderModel.appVersion = kClientVersionShort;
+#endif
+        s_requestHeaderModel.appState = kAppState;
+    }
+    return s_requestHeaderModel;
+}
+
++ (void)resetRequestMode
+{
+    s_requestModel = nil;
+}
+
+#pragma mark - Private
+
+// 拼装 request data
++ (NSDictionary *)getWholeRequestData:(NSDictionary *)requestBody
+{
+    // 拼接发送数据
+    NSMutableDictionary *aRequestModel = [self getRequestModel];
+    NSDictionary *aSendDic = nil;
+    @synchronized(aRequestModel) {
+        aRequestModel[@"mac"] = [[NSUUID UUID] UUIDString];
+        aRequestModel[@"body"] = requestBody;
+        aSendDic = aRequestModel;
+    }
+    return aSendDic;
+}
+
++ (NSMutableDictionary *)getRequestModel
+{
+    if (s_requestModel == nil) {
+        s_requestModel = [[NSMutableDictionary alloc] init];
+        MJRequestHeader *requstHeader = [self getRequestHeaderModel];
+        NSDictionary *aDicHeader = nil;
+        if (requstHeader.deviceId) {
+            aDicHeader = @{@"deviceId":requstHeader.deviceId};
+        } else {
+            aDicHeader = [requstHeader toDictionary];
+        }
+        s_requestModel[@"head"] = aDicHeader;
     }
     return s_requestModel;
 }
 
-// 从MJRespond转换成ResultModel
-+ (ResultModel *)getResultWithRespond:(MJRespond *)aRespond
-                          returnClass:(Class)returnClass
-                             andError:(NSError**)err
-{
-    
-    @try {
-        NSDictionary *body = [aRespond.body copy];
-        NSString *code = body[@"code"];
-        if (code == nil) {
-            LogError(@"...>>> body格式错误 : %@", body.description);
-            *err = [[NSError alloc] initWithDomain:@"Body格式错误" code:-501 userInfo:nil];
-            return nil;
-        }
-        ResultModel *result = [[ResultModel alloc] init];
-        result.code = code;
-        result.message = body[@"message"];
-        // 如果状态码不为0,则直接返回,不再解析后面的数据
-        if (![result.code isEqualToString:@"000000"]) {
-            result.result = nil;
-            return result;
-        }
-        
-        id bodyResult = body[@"result"];
-        if (returnClass == nil || bodyResult == nil) {
-            result.result = body[@"result"];
-            return result;
-        }
-        
-        if ([bodyResult isKindOfClass:[NSDictionary class]]) {
-            // result返回字典类型数据
-            LogInfo(@"[NSDictionary class]");
-            if (bodyResult) {
-                result.result = [[returnClass alloc] initWithDictionary:bodyResult error:err];
-            }
-        } else if ([bodyResult isKindOfClass:[NSString class]]) {
-            // result返回字串类型数据
-            LogInfo(@"[NSString class]");
-            if ([bodyResult isEqualToString:@""]) {
-                result.result = nil;
-            } else {
-                result.result = [body objectForKey:@"result"];
-            }
-        } else if ([bodyResult isKindOfClass:[NSNumber class]]) {
-            LogInfo(@"[NSNumber class]");
-            result.result = [body objectForKey:@"result"];
-        } else if ([bodyResult isKindOfClass:[NSArray class]]) {
-            // result返回数组类型数据
-            LogInfo(@"[NSArray class]");
-            NSArray *array = bodyResult;
-            if (array != nil && array.count > 0) {
-                NSMutableArray *resultArr = [[NSMutableArray alloc] init];
-                for (int i = 0; i < array.count; i++) {
-                    NSDictionary *dic = [array objectAtIndex:i];
-                    [resultArr addObject:[[returnClass alloc] initWithDictionary:dic error:err]];
-                }
-                result.result = resultArr;
-            } else {
-                result.result = nil;
-            }
-        }
-        return result;
-    } @catch (NSException *exception) {
-        LogDebug(@"%@", exception);
-        *err = [[NSError alloc] initWithDomain:exception.reason code:-500 userInfo:exception.userInfo];
-        return nil;
-    } @finally {
-        //
-    }
-}
-
 #pragma mark -
 
-/**
- *	@brief	请求成功数据处理
- *
- *	@param 	result      请求成功后返回的结构
- *	@param 	describe 	请求描述
- *	@param 	completion 	请求完成回调
- *
- *	@return	void
- */
-+ (void)succeedWithResult:(MJRespond *)respond
-                 describe:(NSString *)describe
-              returnClass:(Class)returnClass
-                 callback:(ActionCompleteBlock)completion
-
-{
-    if (completion == NULL) {
-        completion = ^(BOOL isSucceed, NSString *message, id data) {};
-    }
-    NSNumber *code = respond.head[@"code"];
-    if (code.intValue > 0) {
-        NSString *errMessage = respond.head[@"message"];
-        LogError(@"...>>> 网络请求错误: method = %@, %@\n", respond.head[@"method"], respond.head[@"message"]);
-        if (errMessage.length == 0) {
-            errMessage = sNetworkErrorMsg;
-        }
-        NSError *err = [self errorWithCode:[code integerValue] message:errMessage];
-        [self failedWithError:err describe:describe callback:completion];
-        return;
-    }
-    NSError *err = nil;
-    ResultModel *result = [self getResultWithRespond:respond returnClass:returnClass andError:&err];
-    if (err) {
-        LogError(@"...>>> JSON Parse Error: %@\n", err);
-        NSString *errMessage = @"Receive unsupported data!";
-        NSError *err = [self errorWithCode:[code integerValue] message:errMessage];
-        [self failedWithError:err describe:describe callback:completion];
-        return;
-    }
-    if (![result.code isEqualToString:@"000000"]) {
-        NSError *err = [self errorWithCode:[code integerValue] message:result.message];
-        [self failedWithError:err describe:describe callback:completion];
-    } else {
-        completion(YES, [describe stringByAppendingString:@" succeed"], result.result);
-    }
-}
 
 /**
  *	@brief	请求失败数据处理
@@ -494,7 +459,7 @@ static NSCache *s_cacheServerAPIs = nil;
     
     newAction = [s_dicServerAPIs objectForKey:aAction];;
     if (newAction.length > 0) {
-        NSNumber *deviceId = [self getRequestModel].head.deviceId;
+        NSNumber *deviceId = [[self getRequestModel] valueForKeyPath:@"head.deviceId"];
         if ([deviceId longLongValue] > 0) {
             if ([newAction rangeOfString:@"?"].length == 0) {
                 newAction = [newAction stringByAppendingFormat:@"?deviceId=%lld", deviceId.longLongValue];
