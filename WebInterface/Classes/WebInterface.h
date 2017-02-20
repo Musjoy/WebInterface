@@ -7,12 +7,12 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "ActionProtocol.h"
-#import "MJRequestHeader.h"
-#if __has_include("MJListRequest.h")
+#import <ActionProtocol/ActionProtocol.h>
+#import <WebInterface/MJRequestHeader.h>
+#if __has_include(<WebInterface/MJListRequest.h>)
 #define MODULE_WEB_INTERFACE_LIST_REQUEST
-#import "MJListRequest.h"
-#import "MJDataList.h"
+#import <WebInterface/MJListRequest.h>
+#import <WebInterface/MJDataList.h.h>
 #endif
 
 /// 服务器API列表
