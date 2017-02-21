@@ -16,13 +16,13 @@
     return [super toDictionary];
 #else
     NSDictionary *aDic = [NSDictionary dictionaryWithObjectsAndKeys:
-                          @"deviceUUID", _deviceUUID,
-                          @"deviceName", _deviceName,
-                          @"deviceVersion", _deviceVersion,
-                          @"sysVersion", _sysVersion,
-                          @"sysType", _sysType,
-                          @"appVersion", _appVersion,
-                          @"appState", _appState, nil];
+                          _deviceUUID, @"deviceUUID",
+                          _deviceName, @"deviceName",
+                          _deviceVersion, @"deviceVersion",
+                          _sysVersion, @"sysVersion",
+                          _sysType, @"sysType",
+                          _appVersion, @"appVersion",
+                          _appState, @"appState", nil];
     return aDic;
 #endif
 }
