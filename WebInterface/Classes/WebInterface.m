@@ -16,6 +16,9 @@
 #ifdef MODULE_FILE_SOURCE
 #import "FileSource.h"
 #endif
+#ifdef MODULE_DB_MODEL
+#import "DBModel.h"
+#endif
 
 
 static NSMutableDictionary *s_dicRequests = nil;
@@ -67,6 +70,15 @@ static NSCache *s_cacheServerAPIs = nil;
     return [self startRequest:action describe:describe body:body returnClass:nil completion:completion];
 }
 
++ (NSString *)startUpload:(NSString *)action
+                 describe:(NSString *)describe
+                     body:(NSDictionary *)body
+                    files:(NSArray *)files
+               completion:(ActionCompleteBlock)completion
+{
+    return [self startUpload:action describe:describe body:body files:files completion:completion];
+}
+
 /** 统一接口请求 */
 + (NSString *)startRequest:(NSString *)action
                   describe:(NSString *)describe
@@ -102,68 +114,66 @@ static NSCache *s_cacheServerAPIs = nil;
                            {
                                LogInfo(@"===>>>  Respond for %@ = \n%@", action, respond);
                                NSError *err = nil;
-                               NSDictionary *aRespond = nil;
-                               @try {
-                                   // 解析json
-                                   if ([respond isKindOfClass:[NSDictionary class]]) {
-                                       aRespond = respond;
-                                   } else if ([respond isKindOfClass:[NSString class]]){
-                                       // 解析字符串
-                                       aRespond = objectFromString(respond, &err);
-                                   } else {
-                                       // 受到不支持的数据
-                                       err =  [self errorWithCode:-400 message:@"Receive unsupport data!"];
-                                   }
-                                   if (err) {
-                                       [self failedWithError:err describe:describe callback:completion];
-                                       return;
-                                   }
-                                   // 判断网络请求状态
-                                   NSNumber *code = respond[@"code"];
-                                   // 存在code，判断code值，不存在，默认成功
-                                   if (code) {
-                                       if (code.intValue != 0) {
-                                           NSString *errMessage = respond[@"message"];
-                                           LogError(@"...>>>...\n\n 网络请求错误: \n{\n\tmethod = %@, %@\n}\n.", respond[@"method"], respond[@"message"]);
-                                           if (errMessage.length == 0) {
-                                               errMessage = sNetworkErrorMsg;
-                                           }
-                                           err = [self errorWithCode:[code integerValue] message:errMessage];
-                                           [self failedWithError:err describe:describe callback:completion];
-                                           return;
-                                       }
-                                   } else {
-                                       // 这里不存在code暂时默认为成功
-                                   }
-
-                                   // 解析网络数据
-                                   id result = aRespond[@"result"];
-                                   if (result == nil) {
-                                       result = aRespond;
-                                   }
-#ifdef MODULE_DB_MODEL
-                                   if (returnClass != nil) {
-                                       result = [[returnClass alloc] initWithDictionary:result error:&err];
-                                       if (err) {
-                                           [self failedWithError:err describe:describe callback:completion];
-                                           return;
-                                       }
-                                   }
-#endif
+                               id result = [self getResultFromRespond:respond returnClass:returnClass error:&err];
+                               if (err) {
+                                   [self failedWithError:err describe:describe callback:completion];
+                               } else {
                                    completion(YES, [describe stringByAppendingString:@" succeed"], result);
-                               }
-                               @catch (NSException *exception) {
-                                   err = [self errorWithCode:-500 message:@"JSON Parse Error"];
-                               }
-                               @finally {
-                                   if (err) {
-                                       // 数据解析错误，出现该错误说明与服务器接口对应出了问题
-                                       LogDebug(@"...>>>...JSON Parse Error: %@\n", err);
-                                       [self failedWithError:err describe:describe callback:completion];
-                                   }
                                }
                            } failure:^(NSError *error)
                            {
+                               LogDebug(@"%@", error.userInfo[[error.domain stringByAppendingString:@".error.data"]]);
+                               [self failedWithError:error describe:describe callback:completion];
+                           }];
+    if (isRequestStart) {
+        return uuid;
+    }
+    return nil;
+}
+
++ (NSString *)startUpload:(NSString *)action
+                 describe:(NSString *)describe
+                     body:(NSDictionary *)body
+                    files:(NSArray *)files
+              returnClass:(Class)returnClass
+               completion:(ActionCompleteBlock)completion
+{
+    if (s_dicRequests == nil) {
+        s_dicRequests = [[NSMutableDictionary alloc] init];
+#ifdef kServerAction
+        s_serverActionUrl = kServerAction;
+#else
+#warning @"kServerAction is not defined!"
+#endif
+    }
+    
+    s_requestCount++;
+    NSString *uuid = [NSString stringWithFormat:@"%ld", s_requestCount];
+    [s_dicRequests setObject:[NSNumber numberWithBool:YES] forKey:uuid];
+    
+    // 拼接请求url
+    NSString *pathUrl = [NSString stringWithFormat:@"%@%@", s_serverActionUrl, action];
+    
+    // 拼接发送数据
+    NSDictionary *aSendDic = [self getWholeRequestData:body];
+    
+    LogInfo(@"Server request : \n\n%@\n", pathUrl);
+    LogDebug(@"Server request Data : %@\n", aSendDic);
+    
+    BOOL isRequestStart = [MJWebService startUploadFiles:pathUrl
+                                                    body:aSendDic
+                                                   files:files
+                                                 success:^(id respond)
+                           {
+                               LogInfo(@"===>>>  Respond for %@ = \n%@", action, respond);
+                               NSError *err = nil;
+                               id result = [self getResultFromRespond:respond returnClass:returnClass error:&err];
+                               if (err) {
+                                   [self failedWithError:err describe:describe callback:completion];
+                               } else {
+                                   completion(YES, [describe stringByAppendingString:@" succeed"], result);
+                               }
+                           } failure:^(NSError *error) {
                                LogDebug(@"%@", error.userInfo[[error.domain stringByAppendingString:@".error.data"]]);
                                [self failedWithError:error describe:describe callback:completion];
                            }];
@@ -319,6 +329,70 @@ static NSCache *s_cacheServerAPIs = nil;
         s_requestModel[@"head"] = aDicHeader;
     }
     return s_requestModel;
+}
+
++ (id)getResultFromRespond:(id)respond returnClass:(Class)returnClass error:(NSError **)err
+{
+    id result = nil;
+    @try {
+        NSDictionary *aRespond = nil;
+        NSError *aErr = nil;
+        // 解析json
+        if ([respond isKindOfClass:[NSDictionary class]]) {
+            aRespond = respond;
+        } else if ([respond isKindOfClass:[NSString class]]){
+            // 解析字符串
+            aRespond = objectFromString(respond, &aErr);
+        } else {
+            // 受到不支持的数据
+            if (err) *err = [self errorWithCode:-400 message:@"Receive unsupport data!"];
+            return nil;
+        }
+        if (aErr) {
+            if (err) *err = aErr;
+            return nil;
+        }
+
+        // 判断网络请求状态
+        NSNumber *code = respond[@"code"];
+        // 存在code，判断code值，不存在，默认成功
+        if (code) {
+            if (code.intValue != 0) {
+                NSString *errMessage = respond[@"message"];
+                LogError(@"...>>>...\n\n 网络请求错误: \n{\n\tmethod = %@, %@\n}\n.", respond[@"method"], respond[@"message"]);
+                if (errMessage.length == 0) {
+                    errMessage = sNetworkErrorMsg;
+                }
+                if (err) *err = [self errorWithCode:[code integerValue] message:errMessage];
+                return nil;
+            }
+        } else {
+            // 这里不存在code暂时默认为成功
+        }
+        
+        // 解析网络数据
+        id result = aRespond[@"result"];
+        if (result == nil) {
+            result = aRespond;
+        }
+#ifdef MODULE_DB_MODEL
+        if (returnClass != nil) {
+            NSError *aErr = nil;
+            result = [[returnClass alloc] initWithDictionary:result error:&aErr];
+            if (aErr) {
+                *err = aErr;
+                return nil;
+            }
+        }
+#endif
+    }
+    @catch (NSException *exception) {
+        // 数据解析错误，出现该错误说明与服务器接口对应出了问题
+        LogDebug(@"...>>>...JSON Parse Error: %@\n", err);
+        if (err) *err = [self errorWithCode:-500 message:@"JSON Parse Error"];
+        return nil;
+    }
+    return result;
 }
 
 #pragma mark -

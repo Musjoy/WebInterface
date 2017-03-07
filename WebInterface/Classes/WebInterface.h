@@ -47,12 +47,25 @@
                       body:(NSDictionary *)body
                 completion:(ActionCompleteBlock)completion;
 
++ (NSString *)startUpload:(NSString *)action
+                describe:(NSString *)describe
+                     body:(NSDictionary *)body
+                    files:(NSArray *)files
+               completion:(ActionCompleteBlock)completion;
+
 #ifdef MODULE_DB_MODEL
 + (NSString *)startRequest:(NSString *)action
                   describe:(NSString *)describe
                       body:(NSDictionary *)body
                returnClass:(Class)returnClass
                 completion:(ActionCompleteBlock)completion;
+
++ (NSString *)startUpload:(NSString *)action
+                 describe:(NSString *)describe
+                     body:(NSDictionary *)body
+                    files:(NSArray *)files
+              returnClass:(Class)returnClass
+               completion:(ActionCompleteBlock)completion;
 #endif
 
 #ifdef MODULE_WEB_INTERFACE_LIST_REQUEST
