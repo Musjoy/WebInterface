@@ -8,6 +8,7 @@
 
 #import "WebInterface.h"
 #import "MJWebService.h"
+#import HEADER_SERVER_URL
 #ifdef MODULE_DEVICE_HELPER
 #import "MJDeviceHelper.h"
 #else
