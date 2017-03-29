@@ -389,7 +389,7 @@ static NSCache *s_cacheServerAPIs = nil;
     }
     @catch (NSException *exception) {
         // 数据解析错误，出现该错误说明与服务器接口对应出了问题
-        LogDebug(@"...>>>...JSON Parse Error: %@\n", err);
+        LogDebug(@"...>>>...JSON Parse Error: %@\n", exception);
         if (err) *err = [self errorWithCode:-500 message:@"JSON Parse Error"];
         return nil;
     }
