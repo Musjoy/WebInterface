@@ -405,8 +405,6 @@ static NSCache *s_cacheServerAPIs = nil;
  *	@param 	error 	请求失败的错误
  *	@param 	describe 	请求描述
  *	@param 	completion 	请求完成回调
- *
- *	@return	void
  */
 + (void)failedWithError:(NSError *)error
                describe:(NSString *)describe

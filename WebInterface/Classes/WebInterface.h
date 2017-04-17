@@ -37,10 +37,9 @@
  *	@param 	action          接口名称
  *	@param 	describe        接口描述
  *	@param 	body            请求body
- *	@param 	returnClass 	接收的model
  *	@param 	completion      请求完成回调
  *
- *	@return	void
+ *	@return	requestId       请求唯一标识
  */
 + (NSString *)startRequest:(NSString *)action
                   describe:(NSString *)describe
