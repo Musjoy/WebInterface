@@ -411,105 +411,19 @@ static NSCache *s_cacheServerAPIs = nil;
                callback:(ActionCompleteBlock)completion
 
 {
-    if (completion == nil) {
-        completion = ^(BOOL isSucceed, NSString *message, id data) {};
+    if (completion) {
+        
+        NSString *message = [describe stringByAppendingString:@" failed!"];
+        completion(NO, message, error);
     }
-    if ([error.domain isEqualToString:(NSString *)kCFErrorDomainCFNetwork]) {
-        NSString *errMessage = @"";
-        switch (error.code) {
-            case kCFURLErrorUnknown:
-                errMessage = @"网络错误";
-                break;
-            case kCFURLErrorCancelled:
-                errMessage = @"网络连接被取消";
-                break;
-            case kCFURLErrorBadURL:
-                errMessage = @"错误的连接地址";
-                break;
-            case kCFURLErrorTimedOut:
-                errMessage = @"网络超时";
-                break;
-            case kCFURLErrorUnsupportedURL:
-                errMessage = @"网络地址不被支持";
-                break;
-            case kCFURLErrorCannotFindHost:
-            case kCFURLErrorCannotConnectToHost:
-            case kCFURLErrorNetworkConnectionLost:
-            case kCFURLErrorDNSLookupFailed:
-            case kCFURLErrorNotConnectedToInternet:
-            case kCFURLErrorRedirectToNonExistentLocation:
-                errMessage = @"无法连接到服务器";
-                break;
-            case kCFURLErrorBadServerResponse:
-            case kCFURLErrorHTTPTooManyRedirects:
-                errMessage = @"网络错误";
-                break;
-            case kCFURLErrorResourceUnavailable:
-                errMessage = @"无效的资源";
-                break;
-            case kCFURLErrorUserCancelledAuthentication:
-                errMessage = @"网络错误";
-                break;
-            case kCFURLErrorUserAuthenticationRequired:
-                errMessage = @"网络错误";
-                break;
-            case kCFURLErrorZeroByteResource:
-                errMessage = @"网络错误";
-                break;
-            case kCFURLErrorCannotDecodeRawData:
-                errMessage = @"网络错误";
-                break;
-            case kCFURLErrorCannotDecodeContentData:
-                errMessage = @"网络错误";
-                break;
-            case kCFURLErrorCannotParseResponse:
-                errMessage = @"无法解析响应";
-                break;
-            case kCFURLErrorInternationalRoamingOff:
-                errMessage = @"网络漫游关闭";
-                break;
-            case kCFURLErrorCallIsActive:
-                errMessage = @"正在打电话中";
-                break;
-            case kCFURLErrorDataNotAllowed:
-                errMessage = @"数据不被允许";
-                break;
-            case kCFURLErrorRequestBodyStreamExhausted:
-                errMessage = @"网络错误";
-                break;
-            case kCFURLErrorFileDoesNotExist:
-                errMessage = @"文件不存在";
-                break;
-            case kCFURLErrorFileIsDirectory:
-                errMessage = @"请求文件是文件夹";
-                break;
-            case kCFURLErrorNoPermissionsToReadFile:
-                errMessage = @"无权读取文件";
-                break;
-            case kCFURLErrorDataLengthExceedsMaximum:
-                errMessage = @"数据长度超过最大值";
-                break;
-            default:
-                break;
-        }
-        error = [NSError errorWithDomain:kErrorDomain code:error.code userInfo:@{
-                                                                                 NSLocalizedDescriptionKey:sNetworkErrorMsg,
-                                                                                 NSLocalizedFailureReasonErrorKey:errMessage
-                                                                                 }];
-        LogError(@"...>>> 网络错误 : %@", errMessage);
-    }
-
-    NSString *message = [describe stringByAppendingString:@" failed!"];
-    
-    completion(NO, message, error);
 }
 
 + (NSError *)errorWithCode:(NSInteger)errCode message:(NSString *)message
 {
-    return [NSError errorWithDomain:kErrorDomain code:errCode userInfo:@{
-                                                                         NSLocalizedDescriptionKey:message,
-                                                                         NSLocalizedFailureReasonErrorKey:message
-                                                                         }];
+    return [NSError errorWithDomain:kErrorDomainWebInterface code:errCode userInfo:@{
+                                                                                     NSLocalizedDescriptionKey:message,
+                                                                                     NSLocalizedFailureReasonErrorKey:message
+                                                                                     }];
 }
 
 

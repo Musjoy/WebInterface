@@ -20,6 +20,8 @@
 #define FILE_NAME_SERVER_APIS  @"server_apis"
 #endif
 
+/// 错误域
+static NSString *const kErrorDomainWebInterface     = @"WebInterface";
 
 @interface WebInterface : NSObject
 
