@@ -20,6 +20,10 @@
 #ifdef MODULE_DB_MODEL
 #import "DBModel.h"
 #endif
+#if __has_include(<AdSupport/AdSupport.h>)
+#import <AdSupport/AdSupport.h>
+#define MODULE_AD_SUPPORT
+#endif
 
 
 static NSMutableDictionary *s_dicRequests = nil;
@@ -42,6 +46,18 @@ static NSCache *s_cacheServerAPIs = nil;
 
 
 @implementation WebInterface
+
++ (void)dataInit
+{
+    if (s_dicRequests == nil) {
+        s_dicRequests = [[NSMutableDictionary alloc] init];
+#ifdef kServerAction
+        s_serverActionUrl = kServerAction;
+#else
+#warning @"kServerAction is not defined!"
+#endif
+    }
+}
 
 #pragma mark -
 
@@ -87,14 +103,7 @@ static NSCache *s_cacheServerAPIs = nil;
                returnClass:(Class)returnClass
                 completion:(ActionCompleteBlock)completion
 {
-    if (s_dicRequests == nil) {
-        s_dicRequests = [[NSMutableDictionary alloc] init];
-#ifdef kServerAction
-        s_serverActionUrl = kServerAction;
-#else
-#warning @"kServerAction is not defined!"
-#endif
-    }
+    [self dataInit];
     
     s_requestCount++;
     NSString *uuid = [NSString stringWithFormat:@"%ld", s_requestCount];
@@ -140,14 +149,7 @@ static NSCache *s_cacheServerAPIs = nil;
               returnClass:(Class)returnClass
                completion:(ActionCompleteBlock)completion
 {
-    if (s_dicRequests == nil) {
-        s_dicRequests = [[NSMutableDictionary alloc] init];
-#ifdef kServerAction
-        s_serverActionUrl = kServerAction;
-#else
-#warning @"kServerAction is not defined!"
-#endif
-    }
+    [self dataInit];
     
     s_requestCount++;
     NSString *uuid = [NSString stringWithFormat:@"%ld", s_requestCount];
@@ -159,7 +161,7 @@ static NSCache *s_cacheServerAPIs = nil;
     // 拼接发送数据
     NSDictionary *aSendDic = [self getWholeRequestData:body];
     
-    LogInfo(@"Server request : \n\n%@\n", pathUrl);
+    LogInfo(@"Server request : \n\n%@\n.", pathUrl);
     LogDebug(@"Server request Data : %@\n", aSendDic);
     
     BOOL isRequestStart = [MJWebService startUploadFiles:pathUrl
@@ -287,6 +289,12 @@ static NSCache *s_cacheServerAPIs = nil;
         s_requestHeaderModel.deviceVersion = platform;
 #endif
         
+#ifdef MODULE_AD_SUPPORT
+        s_requestHeaderModel.deviceIDFA = [[[ASIdentifierManager sharedManager] advertisingIdentifier] UUIDString];
+#else
+        s_requestHeaderModel.deviceIDFA = @"00000000-0000-0000-0000-000000000000";
+#endif
+        
         s_requestHeaderModel.sysType = kAppSys;
 #ifdef DEBUG
         s_requestHeaderModel.appVersion = kClientVersion;
@@ -375,7 +383,7 @@ static NSCache *s_cacheServerAPIs = nil;
         }
         
         // 解析网络数据
-        id result = aRespond[@"result"];
+        result = aRespond[@"result"];
         if (result == nil) {
             result = aRespond;
         }

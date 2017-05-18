@@ -12,11 +12,12 @@
 
 - (NSDictionary *)toDictionary
 {
-#ifdef MODULE_DB_MODEL1
+#ifdef MODULE_DB_MODEL
     return [super toDictionary];
 #else
     NSDictionary *aDic = [NSDictionary dictionaryWithObjectsAndKeys:
                           _deviceUUID, @"deviceUUID",
+                          _deviceIDFA, @"deviceIDFA",
                           _deviceName, @"deviceName",
                           _deviceVersion, @"deviceVersion",
                           _sysVersion, @"sysVersion",
