@@ -20,10 +20,13 @@
                           _deviceIDFA, @"deviceIDFA",
                           _deviceName, @"deviceName",
                           _deviceVersion, @"deviceVersion",
+                          _deviceVersionName, @"deviceVersionName",
                           _sysVersion, @"sysVersion",
                           _sysType, @"sysType",
                           _appVersion, @"appVersion",
-                          _appState, @"appState", nil];
+                          _appState, @"appState",
+                          _deviceRegionCode, @"deviceRegionCode",
+                          _firstLanguage, @"firstLanguage", nil];
     return aDic;
 #endif
 }

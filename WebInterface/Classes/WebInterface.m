@@ -9,15 +9,15 @@
 #import "WebInterface.h"
 #import "MJWebService.h"
 #import HEADER_SERVER_URL
-#ifdef MODULE_DEVICE_HELPER
-#import "MJDeviceHelper.h"
+#ifdef  MODULE_DEVICE
+#import <MJDevice.h>
 #else
 #include <sys/sysctl.h>
 #endif
-#ifdef MODULE_FILE_SOURCE
+#ifdef  MODULE_FILE_SOURCE
 #import "FileSource.h"
 #endif
-#ifdef MODULE_DB_MODEL
+#ifdef  MODULE_DB_MODEL
 #import "DBModel.h"
 #endif
 #if __has_include(<AdSupport/AdSupport.h>)
@@ -273,10 +273,11 @@ static NSCache *s_cacheServerAPIs = nil;
     if (s_requestHeaderModel == nil) {
         s_requestHeaderModel = [[MJRequestHeader alloc] init];
         s_requestHeaderModel.deviceName = [UIDevice currentDevice].name;
-#ifdef MODULE_DEVICE_HELPER
-        s_requestHeaderModel.deviceUUID = [MJDeviceHelper getDeviceID];
-        s_requestHeaderModel.deviceVersion = [MJDeviceHelper getDeviceVersion];
-        s_requestHeaderModel.sysVersion = [MJDeviceHelper getCurrentSysVersion];
+#ifdef MODULE_DEVICE
+        s_requestHeaderModel.deviceUUID = [MJDevice deviceUUID];
+        s_requestHeaderModel.deviceVersion = [MJDevice deviceVersion];
+        s_requestHeaderModel.deviceVersionName = [MJDevice deviceVersionName];
+        s_requestHeaderModel.sysVersion = [MJDevice sysVersion];
 #else
         s_requestHeaderModel.deviceUUID = [[UIDevice currentDevice].identifierForVendor UUIDString];
         s_requestHeaderModel.sysVersion = [@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]];
@@ -302,6 +303,15 @@ static NSCache *s_cacheServerAPIs = nil;
         s_requestHeaderModel.appVersion = kClientVersionShort;
 #endif
         s_requestHeaderModel.appState = kAppState;
+        
+        // 获取地区和语言
+        NSArray *arrLanguages = [NSLocale preferredLanguages];
+        NSString *aLanguage = arrLanguages.firstObject;
+        NSRange aRange = [aLanguage rangeOfString:@"-" options:NSBackwardsSearch];
+        if (aRange.length > 0) {
+            s_requestHeaderModel.deviceRegionCode = [aLanguage substringFromIndex:aRange.location+1];
+            s_requestHeaderModel.firstLanguage = [aLanguage substringToIndex:aRange.location];
+        }
     }
     return s_requestHeaderModel;
 }
