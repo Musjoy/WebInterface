@@ -9,6 +9,7 @@
 #import "WebInterface.h"
 #import "MJWebService.h"
 #import HEADER_SERVER_URL
+#import HEADER_JSON_GENERATE
 #ifdef  MODULE_DEVICE
 #import <MJDevice.h>
 #else
@@ -81,10 +82,29 @@ static NSCache *s_cacheServerAPIs = nil;
 
 + (NSString *)startRequest:(NSString *)action
                   describe:(NSString *)describe
+                    header:(NSDictionary *)header
                       body:(NSDictionary *)body
                 completion:(ActionCompleteBlock)completion
 {
-    return [self startRequest:action describe:describe body:body returnClass:nil completion:completion];
+    return [self startRequest:action describe:describe header:header body:body returnClass:nil completion:completion];
+}
+
++ (NSString *)startRequest:(NSString *)action
+                  describe:(NSString *)describe
+                      body:(NSDictionary *)body
+                completion:(ActionCompleteBlock)completion
+{
+    return [self startRequest:action describe:describe header:nil body:body returnClass:nil completion:completion];
+}
+
++ (NSString *)startUpload:(NSString *)action
+                 describe:(NSString *)describe
+                   header:(NSDictionary *)header
+                     body:(NSDictionary *)body
+                    files:(NSArray *)files
+               completion:(ActionCompleteBlock)completion
+{
+    return [self startUpload:action describe:describe header:header body:body files:files returnClass:nil completion:completion];
 }
 
 + (NSString *)startUpload:(NSString *)action
@@ -93,12 +113,31 @@ static NSCache *s_cacheServerAPIs = nil;
                     files:(NSArray *)files
                completion:(ActionCompleteBlock)completion
 {
-    return [self startUpload:action describe:describe body:body files:files completion:completion];
+    return [self startUpload:action describe:describe header:nil body:body files:files returnClass:nil completion:completion];
 }
 
++ (NSString *)startRequest:(NSString *)action
+                  describe:(NSString *)describe
+                      body:(NSDictionary *)body
+               returnClass:(Class)returnClass
+                completion:(ActionCompleteBlock)completion
+{
+    return [self startRequest:action describe:describe header:nil body:body returnClass:returnClass completion:completion];
+}
+
++ (NSString *)startUpload:(NSString *)action
+                 describe:(NSString *)describe
+                     body:(NSDictionary *)body
+                    files:(NSArray *)files
+              returnClass:(Class)returnClass
+               completion:(ActionCompleteBlock)completion
+{
+    return [self startUpload:action describe:describe header:nil body:body files:files returnClass:returnClass completion:completion];
+}
 /** 统一接口请求 */
 + (NSString *)startRequest:(NSString *)action
                   describe:(NSString *)describe
+                    header:(NSDictionary *)header
                       body:(NSDictionary *)body
                returnClass:(Class)returnClass
                 completion:(ActionCompleteBlock)completion
@@ -144,6 +183,7 @@ static NSCache *s_cacheServerAPIs = nil;
 
 + (NSString *)startUpload:(NSString *)action
                  describe:(NSString *)describe
+                   header:(NSDictionary *)header
                      body:(NSDictionary *)body
                     files:(NSArray *)files
               returnClass:(Class)returnClass
@@ -332,7 +372,11 @@ static NSCache *s_cacheServerAPIs = nil;
     @synchronized(aRequestModel) {
         aRequestModel[@"mac"] = [[NSUUID UUID] UUIDString];
         aRequestModel[@"body"] = requestBody;
-        aSendDic = aRequestModel;
+        NSString *jsonStr = jsonStringFromDic(aRequestModel);
+        if (jsonStr == nil) {
+            jsonStr = @"";
+        }
+        aSendDic = @{@"jsonData":jsonStr};
     }
     return aSendDic;
 }

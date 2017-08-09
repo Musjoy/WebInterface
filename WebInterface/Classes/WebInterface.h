@@ -38,6 +38,7 @@ static NSString *const kErrorDomainWebInterface     = @"WebInterface";
  *
  *	@param 	action          接口名称
  *	@param 	describe        接口描述
+ *	@param 	header          请求头部信息
  *	@param 	body            请求body
  *	@param 	completion      请求完成回调
  *
@@ -45,16 +46,35 @@ static NSString *const kErrorDomainWebInterface     = @"WebInterface";
  */
 + (NSString *)startRequest:(NSString *)action
                   describe:(NSString *)describe
+                    header:(NSDictionary *)header
+                      body:(NSDictionary *)body
+                completion:(ActionCompleteBlock)completion;
++ (NSString *)startRequest:(NSString *)action
+                  describe:(NSString *)describe
                       body:(NSDictionary *)body
                 completion:(ActionCompleteBlock)completion;
 
++ (NSString *)startUpload:(NSString *)action
+                 describe:(NSString *)describe
+                   header:(NSDictionary *)header
+                     body:(NSDictionary *)body
+                    files:(NSArray *)files
+               completion:(ActionCompleteBlock)completion;
 + (NSString *)startUpload:(NSString *)action
                 describe:(NSString *)describe
                      body:(NSDictionary *)body
                     files:(NSArray *)files
                completion:(ActionCompleteBlock)completion;
 
-#ifdef MODULE_DB_MODEL
+
+#pragma mark - Have Return Class
+
++ (NSString *)startRequest:(NSString *)action
+                  describe:(NSString *)describe
+                    header:(NSDictionary *)header
+                      body:(NSDictionary *)body
+               returnClass:(Class)returnClass
+                completion:(ActionCompleteBlock)completion;
 + (NSString *)startRequest:(NSString *)action
                   describe:(NSString *)describe
                       body:(NSDictionary *)body
@@ -63,11 +83,17 @@ static NSString *const kErrorDomainWebInterface     = @"WebInterface";
 
 + (NSString *)startUpload:(NSString *)action
                  describe:(NSString *)describe
+                   header:(NSDictionary *)header
                      body:(NSDictionary *)body
                     files:(NSArray *)files
               returnClass:(Class)returnClass
                completion:(ActionCompleteBlock)completion;
-#endif
++ (NSString *)startUpload:(NSString *)action
+                 describe:(NSString *)describe
+                     body:(NSDictionary *)body
+                    files:(NSArray *)files
+              returnClass:(Class)returnClass
+               completion:(ActionCompleteBlock)completion;
 
 #ifdef MODULE_WEB_INTERFACE_LIST_REQUEST
 /** 通用列表请求 */ 
