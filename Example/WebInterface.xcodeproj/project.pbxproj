@@ -7,17 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4296B3FE960983FD23649267 /* Pods_WebInterface_Tests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2269AA28A2BEF6ABFC1BFA1A /* Pods_WebInterface_Tests.framework */; };
 		6003F5B0195388D20070C39A /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6003F5AF195388D20070C39A /* XCTest.framework */; };
 		6003F5B1195388D20070C39A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6003F58D195388D20070C39A /* Foundation.framework */; };
 		6003F5B2195388D20070C39A /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6003F591195388D20070C39A /* UIKit.framework */; };
 		6003F5BA195388D20070C39A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6003F5B8195388D20070C39A /* InfoPlist.strings */; };
 		6003F5BC195388D20070C39A /* Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 6003F5BB195388D20070C39A /* Tests.m */; };
+		95199CDD98CEA1D25718B5F6 /* libPods-WebInterface_Tests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9FD11679645ED1CF9ECE76E8 /* libPods-WebInterface_Tests.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		17E79147185C1DEEF7D4544D /* Pods-WebInterface_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WebInterface_Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-WebInterface_Tests/Pods-WebInterface_Tests.release.xcconfig"; sourceTree = "<group>"; };
-		2269AA28A2BEF6ABFC1BFA1A /* Pods_WebInterface_Tests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WebInterface_Tests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B1D6EC53A2566C7D6870473 /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		55A52C524298D8AA7FAEE1EF /* Pods-WebInterface_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WebInterface_Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-WebInterface_Tests/Pods-WebInterface_Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		6003F58D195388D20070C39A /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -29,6 +28,7 @@
 		6003F5B9195388D20070C39A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		6003F5BB195388D20070C39A /* Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Tests.m; sourceTree = "<group>"; };
 		606FC2411953D9B200FFA9A0 /* Tests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Tests-Prefix.pch"; sourceTree = "<group>"; };
+		9FD11679645ED1CF9ECE76E8 /* libPods-WebInterface_Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-WebInterface_Tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B00E147A756E686187CD6A69 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		C57C848138671E031684F083 /* WebInterface.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = WebInterface.podspec; path = ../WebInterface.podspec; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -41,7 +41,7 @@
 				6003F5B0195388D20070C39A /* XCTest.framework in Frameworks */,
 				6003F5B2195388D20070C39A /* UIKit.framework in Frameworks */,
 				6003F5B1195388D20070C39A /* Foundation.framework in Frameworks */,
-				4296B3FE960983FD23649267 /* Pods_WebInterface_Tests.framework in Frameworks */,
+				95199CDD98CEA1D25718B5F6 /* libPods-WebInterface_Tests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,7 +83,7 @@
 				6003F58F195388D20070C39A /* CoreGraphics.framework */,
 				6003F591195388D20070C39A /* UIKit.framework */,
 				6003F5AF195388D20070C39A /* XCTest.framework */,
-				2269AA28A2BEF6ABFC1BFA1A /* Pods_WebInterface_Tests.framework */,
+				9FD11679645ED1CF9ECE76E8 /* libPods-WebInterface_Tests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -197,7 +197,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 		A1085323E11F820551B92998 /* [CP] Copy Pods Resources */ = {
