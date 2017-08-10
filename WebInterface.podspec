@@ -45,9 +45,9 @@ Pod::Spec.new do |s|
 
   end
 
-  s.dependency 'MJWebService', '~> 0.1.1'
-  s.dependency 'ActionProtocol', '~> 0.1.0'
-  s.dependency 'ModuleCapability', '~> 0.1.2'
+  s.dependency 'MJWebService', '~> 0.1'
+  s.dependency 'ActionProtocol', '~> 0.1'
+  s.dependency 'ModuleCapability', '~> 0.1'
   s.prefix_header_contents = '#import "ModuleCapability.h"'
 
 end

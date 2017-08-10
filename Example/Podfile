@@ -1,3 +1,5 @@
+source 'git@git.musjoy.com:PodSpecs.git'
+source 'https://github.com/CocoaPods/Specs.git'
 #use_frameworks!
 target 'WebInterface_Tests' do
   pod 'WebInterface', :path => '../'
