@@ -158,6 +158,7 @@ static NSCache *s_cacheServerAPIs = nil;
     LogDebug(@"Server request Data : %@\n", aSendDic);
     
     BOOL isRequestStart = [MJWebService startPost:pathUrl
+                                           header:header
                                              body:aSendDic
                                        completion:^(NSURLResponse *response, id responseData, NSError *error)
                            {
@@ -205,6 +206,7 @@ static NSCache *s_cacheServerAPIs = nil;
     LogDebug(@"Server request Data : %@\n", aSendDic);
     
     BOOL isRequestStart = [MJWebService startUploadFiles:pathUrl
+                                                  header:header
                                                     body:aSendDic
                                                    files:files
                                               completion:^(NSURLResponse *response, id responseData, NSError *error)
