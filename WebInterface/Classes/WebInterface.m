@@ -157,29 +157,29 @@ static NSCache *s_cacheServerAPIs = nil;
     LogInfo(@"Server request : \n\n%@\n", pathUrl);
     LogDebug(@"Server request Data : %@\n", aSendDic);
     
-    BOOL isRequestStart = [MJWebService startPost:pathUrl
-                                           header:header
-                                             body:aSendDic
-                                       completion:^(NSURLResponse *response, id responseData, NSError *error)
-                           {
-                               if (!error) {
-                                   LogInfo(@"===>>>  Respond for %@ = \n%@", action, responseData);
-                                   NSError *err = nil;
-                                   id result = [self getResultFromRespond:responseData returnClass:returnClass error:&err];
-                                   if (err) {
-                                       [self failedWithError:err describe:describe callback:completion];
-                                   } else {
-                                       completion(YES, [describe stringByAppendingString:@" succeed"], result);
-                                   }
-                               } else {
-                                   LogDebug(@"%@", error.userInfo[[error.domain stringByAppendingString:@".error.data"]]);
-                                   [self failedWithError:error describe:describe callback:completion];
-                               }
-                           }];
-    if (isRequestStart) {
-        return uuid;
-    }
-    return nil;
+    [MJWebService startPost:pathUrl
+                     header:header
+                       body:aSendDic
+                 completion:^(NSURLResponse *response, id responseData, NSError *error)
+     {
+         if (![s_dicRequests objectForKey:uuid]) {
+             return;
+         }
+         if (!error) {
+             LogInfo(@"===>>>  Respond for %@ = \n%@", action, responseData);
+             NSError *err = nil;
+             id result = [self getResultFromRespond:responseData returnClass:returnClass error:&err];
+             if (err) {
+                 [self failedWithError:err describe:describe callback:completion];
+             } else {
+                 completion(YES, [describe stringByAppendingString:@" succeed"], result);
+             }
+         } else {
+             LogDebug(@"%@", error.userInfo[[error.domain stringByAppendingString:@".error.data"]]);
+             [self failedWithError:error describe:describe callback:completion];
+         }
+     }];
+    return uuid;
 }
 
 + (NSString *)startUpload:(NSString *)action
@@ -205,30 +205,27 @@ static NSCache *s_cacheServerAPIs = nil;
     LogInfo(@"Server request : \n\n%@\n.", pathUrl);
     LogDebug(@"Server request Data : %@\n", aSendDic);
     
-    BOOL isRequestStart = [MJWebService startUploadFiles:pathUrl
-                                                  header:header
-                                                    body:aSendDic
-                                                   files:files
-                                              completion:^(NSURLResponse *response, id responseData, NSError *error)
-                           {
-                               if (!error) {
-                                   LogInfo(@"===>>>  Respond for %@ = \n%@", action, responseData);
-                                   NSError *err = nil;
-                                   id result = [self getResultFromRespond:responseData returnClass:returnClass error:&err];
-                                   if (err) {
-                                       [self failedWithError:err describe:describe callback:completion];
-                                   } else {
-                                       completion(YES, [describe stringByAppendingString:@" succeed"], result);
-                                   }
-                               } else {
-                                   LogDebug(@"%@", error.userInfo[[error.domain stringByAppendingString:@".error.data"]]);
-                                   [self failedWithError:error describe:describe callback:completion];
-                               }
-                          }];
-    if (isRequestStart) {
-        return uuid;
-    }
-    return nil;
+    [MJWebService startUploadFiles:pathUrl
+                            header:header
+                              body:aSendDic
+                             files:files
+                        completion:^(NSURLResponse *response, id responseData, NSError *error)
+     {
+         if (!error) {
+             LogInfo(@"===>>>  Respond for %@ = \n%@", action, responseData);
+             NSError *err = nil;
+             id result = [self getResultFromRespond:responseData returnClass:returnClass error:&err];
+             if (err) {
+                 [self failedWithError:err describe:describe callback:completion];
+             } else {
+                 completion(YES, [describe stringByAppendingString:@" succeed"], result);
+             }
+         } else {
+             LogDebug(@"%@", error.userInfo[[error.domain stringByAppendingString:@".error.data"]]);
+             [self failedWithError:error describe:describe callback:completion];
+         }
+     }];
+    return uuid;
 }
 
 
