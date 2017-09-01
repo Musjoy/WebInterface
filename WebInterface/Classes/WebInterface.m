@@ -8,6 +8,7 @@
 
 #import "WebInterface.h"
 #import "MJWebService.h"
+#import HEADER_LOCALIZE
 #import HEADER_SERVER_URL
 #import HEADER_JSON_GENERATE
 #ifdef  MODULE_DEVICE
@@ -36,6 +37,10 @@ static MJRequestHeader *s_requestHeaderModel = nil;
 static NSMutableDictionary *s_dicServerAPIs = nil;
 static NSCache *s_cacheServerAPIs = nil;
 
+/// 成功提示key
+static NSString *const kAPITipSucceedKey            = @"API_succeed";
+/// 失败提示key
+static NSString *const kAPITipFailedKey             = @"API_failed";
 
 #define kAppSys @1          // 客户端类型 (1-iOS, 2-Andorid)
 #ifdef DEBUG
@@ -56,6 +61,23 @@ static NSCache *s_cacheServerAPIs = nil;
         s_serverActionUrl = kServerAction;
 #else
 #warning @"kServerAction is not defined!"
+#endif
+#if defined(MODULE_LOCALIZE) && !defined(FUN_WEB_INTERFACE_BLOCK_LOCALIZE)
+        // 导入国际化
+        NSString *testMessage = locString(kAPITipFailedKey);
+        if ([testMessage isEqualToString:kAPITipFailedKey]) {
+            [[MJLocalize sharedInstance] addLocalizedStringWith:
+             @{
+               @"Base" : @{
+                       @"API_succeed" : @"%@ succeed!",
+                       @"API_failed" : @"%@ failed!"
+                       },
+               @"zh" : @{
+                       @"API_succeed" : @"%@成功!",
+                       @"API_failed" : @"%@失败!"
+                       }
+               }];
+        }
 #endif
     }
 }
@@ -172,7 +194,7 @@ static NSCache *s_cacheServerAPIs = nil;
              if (err) {
                  [self failedWithError:err describe:describe callback:completion];
              } else {
-                 completion(YES, [describe stringByAppendingString:@" succeed"], result);
+                 completion(YES, [self succeedWithDescribe:describe], result);
              }
          } else {
              LogDebug(@"%@", error.userInfo[[error.domain stringByAppendingString:@".error.data"]]);
@@ -218,7 +240,7 @@ static NSCache *s_cacheServerAPIs = nil;
              if (err) {
                  [self failedWithError:err describe:describe callback:completion];
              } else {
-                 completion(YES, [describe stringByAppendingString:@" succeed"], result);
+                 completion(YES, [self succeedWithDescribe:describe], result);
              }
          } else {
              LogDebug(@"%@", error.userInfo[[error.domain stringByAppendingString:@".error.data"]]);
@@ -463,6 +485,15 @@ static NSCache *s_cacheServerAPIs = nil;
 #pragma mark -
 
 
++ (NSString *)succeedWithDescribe:(NSString *)describe
+{
+    NSString *message = locStringWithFormat(kAPITipSucceedKey, describe);
+    if ([message isEqualToString:kAPITipSucceedKey]) {
+        message = [describe stringByAppendingString:@" succeed!"];
+    }
+    return message;
+}
+
 /**
  *	@brief	请求失败数据处理
  *
@@ -476,8 +507,10 @@ static NSCache *s_cacheServerAPIs = nil;
 
 {
     if (completion) {
-        
-        NSString *message = [describe stringByAppendingString:@" failed!"];
+        NSString *message = locStringWithFormat(kAPITipFailedKey, describe);
+        if ([message isEqualToString:kAPITipFailedKey]) {
+            message = [describe stringByAppendingString:@" failed!"];
+        }
         completion(NO, message, error);
     }
 }
