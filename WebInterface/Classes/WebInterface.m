@@ -16,11 +16,9 @@
 #else
 #include <sys/sysctl.h>
 #endif
-#ifdef  MODULE_FILE_SOURCE
-#import "FileSource.h"
-#endif
+#import HEADER_FILE_SOURCE
 #ifdef  MODULE_DB_MODEL
-#import "DBModel.h"
+#import <DBModel/DBModel.h>
 #endif
 #if __has_include(<AdSupport/AdSupport.h>)
 #import <AdSupport/AdSupport.h>
