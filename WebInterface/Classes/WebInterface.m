@@ -7,12 +7,12 @@
 //
 
 #import "WebInterface.h"
-#import "MJWebService.h"
+#import <MJWebService/MJWebService.h>
 #import HEADER_LOCALIZE
 #import HEADER_SERVER_URL
 #import HEADER_JSON_GENERATE
 #ifdef  MODULE_DEVICE
-#import <MJDevice.h>
+#import <MJDevice/MJDevice.h>
 #else
 #include <sys/sysctl.h>
 #endif
