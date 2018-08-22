@@ -370,6 +370,10 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
         if (aRange.length > 0) {
             s_requestHeaderModel.deviceRegionCode = [aLanguage substringFromIndex:aRange.location+1];
             s_requestHeaderModel.firstLanguage = [aLanguage substringToIndex:aRange.location];
+        } else {
+            // 这里可能是模拟器
+            s_requestHeaderModel.deviceRegionCode = @"US";
+            s_requestHeaderModel.firstLanguage = aLanguage;
         }
     }
     return s_requestHeaderModel;
