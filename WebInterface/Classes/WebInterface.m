@@ -411,7 +411,8 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
         MJRequestHeader *requstHeader = [self getRequestHeaderModel];
         NSDictionary *aDicHeader = nil;
         if (requstHeader.deviceId) {
-            aDicHeader = @{@"deviceId":requstHeader.deviceId};
+            aDicHeader = @{@"deviceId":requstHeader.deviceId,
+                           @"appState":requstHeader.appState};
         } else {
             aDicHeader = [requstHeader toDictionary];
         }
