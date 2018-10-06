@@ -26,6 +26,7 @@
 
 @property (nonatomic, strong) NSString *deviceRegionCode;           ///< 设备区域编码
 @property (nonatomic, strong) NSString *firstLanguage;              ///< 用户使用母语
+@property (nonatomic, strong) NSNumber *timeZone;                   ///< 时区
 
 
 //@property (nonatomic, strong) NSString *version;                      // 接口版本号

@@ -375,6 +375,7 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
             s_requestHeaderModel.deviceRegionCode = @"US";
             s_requestHeaderModel.firstLanguage = aLanguage;
         }
+        s_requestHeaderModel.timeZone = [NSNumber numberWithFloat:roundf([[NSTimeZone localTimeZone] secondsFromGMT]*2.0/3600)/2];
     }
     return s_requestHeaderModel;
 }
