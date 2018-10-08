@@ -374,8 +374,10 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
             // 这里可能是模拟器
             s_requestHeaderModel.deviceRegionCode = @"US";
             s_requestHeaderModel.firstLanguage = aLanguage;
-        }        
-        s_requestHeaderModel.timeZone = [NSNumber numberWithInteger:[[[[NSTimeZone localTimeZone] name] substringFromIndex:3] integerValue]];
+        }
+        // 时区
+        NSString *timeZoneStr = [[[[NSTimeZone localTimeZone] abbreviation] substringFromIndex:3] stringByReplacingOccurrencesOfString:@":" withString:@""];
+        s_requestHeaderModel.timeZone = [NSNumber numberWithInteger:[timeZoneStr integerValue]];
     }
     return s_requestHeaderModel;
 }
