@@ -438,7 +438,7 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
             aRespond = objectFromString(respond, &aErr);
         } else {
             // 受到不支持的数据
-            if (err) *err = [self errorWithCode:-400 message:@"Receive unsupport data!"];
+            if (err) *err = [self errorWithCode:-400 message:@"Receive unsupport data!" result:nil];
             return nil;
         }
         if (aErr) {
@@ -456,7 +456,7 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
                 if (errMessage.length == 0) {
                     errMessage = sNetworkErrorMsg;
                 }
-                if (err) *err = [self errorWithCode:[code integerValue] message:errMessage];
+                if (err) *err = [self errorWithCode:[code integerValue] message:errMessage result:respond[@"result"]];
                 return nil;
             }
         } else {
@@ -482,7 +482,7 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
     @catch (NSException *exception) {
         // 数据解析错误，出现该错误说明与服务器接口对应出了问题
         LogDebug(@"...>>>...JSON Parse Error: %@\n", exception);
-        if (err) *err = [self errorWithCode:-500 message:@"JSON Parse Error"];
+        if (err) *err = [self errorWithCode:-500 message:@"JSON Parse Error" result:nil];
         return nil;
     }
     return result;
@@ -521,8 +521,12 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
     }
 }
 
-+ (NSError *)errorWithCode:(NSInteger)errCode message:(NSString *)message
++ (NSError *)errorWithCode:(NSInteger)errCode message:(NSString *)message result:(id)result
 {
+    NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+                              message, NSLocalizedDescriptionKey,
+                              message, NSLocalizedFailureReasonErrorKey,
+                              result, @"result", nil];
     return [NSError errorWithDomain:kErrorDomainWebInterface code:errCode userInfo:@{
                                                                                      NSLocalizedDescriptionKey:message,
                                                                                      NSLocalizedFailureReasonErrorKey:message
