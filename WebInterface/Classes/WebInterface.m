@@ -527,10 +527,7 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
                               message, NSLocalizedDescriptionKey,
                               message, NSLocalizedFailureReasonErrorKey,
                               result, @"result", nil];
-    return [NSError errorWithDomain:kErrorDomainWebInterface code:errCode userInfo:@{
-                                                                                     NSLocalizedDescriptionKey:message,
-                                                                                     NSLocalizedFailureReasonErrorKey:message
-                                                                                     }];
+    return [NSError errorWithDomain:kErrorDomainWebInterface code:errCode userInfo:userInfo];
 }
 
 
