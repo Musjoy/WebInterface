@@ -27,8 +27,10 @@
 @property (nonatomic, strong) NSString *firstLanguage;              ///< 用户使用母语
 @property (nonatomic, strong) NSNumber *timeZone;                   ///< 时区
 
+#ifdef FUN_WEB_INTERFACE_DEVICE_NEED_APP
 @property (nonatomic, strong) NSNumber *deviceAppId;                ///< 设备应用ID，当这个值存在时，下面四个可选
 @property (nonatomic, strong) NSString *appBundleId;                ///< app包名
+#endif
 @property (nonatomic, strong) NSString *appVersion;                 ///< app版本号
 
 //@property (nonatomic, strong) NSString *version;                      // 接口版本号

@@ -413,11 +413,14 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
         s_requestModel = [[NSMutableDictionary alloc] init];
         MJRequestHeader *requstHeader = [self getRequestHeaderModel];
         NSDictionary *aDicHeader = nil;
+#ifdef FUN_WEB_INTERFACE_DEVICE_NEED_APP
         if (requstHeader.deviceAppId) {
             aDicHeader = @{@"deviceAppId":requstHeader.deviceAppId,
                            @"appState":requstHeader.appState,
                            @"appVersion":requstHeader.appVersion};
-        } else if (requstHeader.deviceId) {
+        } else
+#endif
+        if (requstHeader.deviceId) {
             aDicHeader = @{@"deviceId":requstHeader.deviceId,
                            @"appState":requstHeader.appState,
                            @"appVersion":requstHeader.appVersion};

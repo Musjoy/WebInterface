@@ -20,8 +20,10 @@
 #define FILE_NAME_SERVER_APIS  @"server_apis"
 #endif
 
-/// 定义改宏定义来屏蔽国际化，默认使用英文
+/// 定义该宏定义来屏蔽国际化，默认使用英文
 //#define FUN_WEB_INTERFACE_BLOCK_LOCALIZE
+/// 定义该宏定义来设置请求需要保护App包名
+//#define FUN_WEB_INTERFACE_DEVICE_NEED_APP
 
 /// 错误域
 static NSString *const kErrorDomainWebInterface     = @"WebInterface";
