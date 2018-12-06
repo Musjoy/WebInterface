@@ -362,6 +362,10 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
         s_requestHeaderModel.appVersion = kClientVersionShort;
 #endif
         s_requestHeaderModel.appState = kAppState;
+
+#ifdef FUN_WEB_INTERFACE_DEVICE_NEED_APP
+        s_requestHeaderModel.appBundleId = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleIdentifier"];
+#endif
         
         // 获取地区和语言
         NSArray *arrLanguages = [NSLocale preferredLanguages];
