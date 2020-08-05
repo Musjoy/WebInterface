@@ -25,6 +25,9 @@
 #define MODULE_AD_SUPPORT
 #endif
 
+#ifdef  MODULE_SECURITY
+#import <MJSecurity/MJSecurity.h>
+#endif
 
 static NSMutableDictionary *s_dicRequests = nil;
 static NSString *s_serverActionUrl = nil;
@@ -170,12 +173,17 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
     
     // 拼接请求url
     NSString *pathUrl = [NSString stringWithFormat:@"%@%@", s_serverActionUrl, action];
-
+    
     // 拼接发送数据
     NSDictionary *aSendDic = [self getWholeRequestData:body];
     
-    LogInfo(@"Server request : \n\n%@\n", pathUrl);
+    LogInfo(@"Server request : \n\n%@\n.", pathUrl);
     LogDebug(@"Server request Data : %@\n", aSendDic);
+    
+#ifdef  MODULE_SECURITY
+    // 安全请求
+    aSendDic = [self securityRequestBody:body];
+#endif
     
     [MJWebService startPost:pathUrl
                      header:header
@@ -186,7 +194,7 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
              return;
          }
          if (!error) {
-             LogInfo(@"===>>>  Respond for %@ = \n%@", action, responseData);
+//             LogInfo(@"===>>>  Respond for %@ = \n%@", action, responseData);
              NSError *err = nil;
              id result = [self getResultFromRespond:responseData returnClass:returnClass error:&err];
              if (err) {
@@ -225,6 +233,11 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
     LogInfo(@"Server request : \n\n%@\n.", pathUrl);
     LogDebug(@"Server request Data : %@\n", aSendDic);
     
+#ifdef  MODULE_SECURITY
+    // 安全请求
+    aSendDic = [self securityRequestBody:body];
+#endif
+    
     [MJWebService startUploadFiles:pathUrl
                             header:header
                               body:aSendDic
@@ -232,7 +245,7 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
                         completion:^(NSURLResponse *response, id responseData, NSError *error)
      {
          if (!error) {
-             LogInfo(@"===>>>  Respond for %@ = \n%@", action, responseData);
+//             LogInfo(@"===>>>  Respond for %@ = \n%@", action, responseData);
              NSError *err = nil;
              id result = [self getResultFromRespond:responseData returnClass:returnClass error:&err];
              if (err) {
@@ -246,6 +259,71 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
          }
      }];
     return uuid;
+}
+
+/// 安全请求
++ (NSDictionary *)securityRequestBody:(NSDictionary *)body
+{
+    // 取出控制参数
+    BOOL useEncrypt = [body[USE_ENCRYPT] boolValue];
+    BOOL useSignature = [body[USE_SIGNATURE] boolValue];
+    NSMutableDictionary *muBody = [body mutableCopy];
+    [muBody removeObjectForKey:USE_ENCRYPT];
+    [muBody removeObjectForKey:USE_SIGNATURE];
+    
+    // 拼接发送数据
+    NSDictionary *aSendDic = [self getWholeRequestData:muBody];
+    
+    // 安全请求
+    NSString *jsonData = aSendDic[@"jsonData"];
+    NSMutableDictionary *dicBody = [[NSMutableDictionary alloc] initWithDictionary:aSendDic];
+    
+    // 使用加密
+    NSData *encryptData = nil;
+    if (useEncrypt) {
+        encryptData = [MJSecurity AESEncryptData:[jsonData dataUsingEncoding:NSUTF8StringEncoding] key:AES_KEY iv:AES_IV];
+        if (encryptData) {
+            [dicBody removeObjectForKey:@"jsonData"];
+            [dicBody setObject:[MJSecurity Base64Data:encryptData] forKey:@"encryptData"];
+        } else {
+            LogError(@"AES加密失败，请检查AES_KEY、AES_IV是否正确");
+        }
+    }
+    
+//    // 解密（测试）
+//    if (useEncrypt) {
+//        NSData *data = [MJSecurity dataFromDecodeBase64String:dicBody[@"encryptData"]];
+//        NSString *deStr = [[NSString alloc] initWithData:[MJSecurity AESDecryptData:data key:AESkey iv:AESiv] encoding:NSUTF8StringEncoding];
+//        NSLog(@"解密：%@", deStr);
+//    }
+    
+    // 使用签名
+    if (useSignature) {
+        if (encryptData == nil) {
+            encryptData = [jsonData dataUsingEncoding:NSUTF8StringEncoding];
+        }
+        NSString *strSignature = [MJSecurity RSASignatureData:encryptData privateKey:RSA_PRIVATE_KEY];
+        if (strSignature.length) {
+            [dicBody setObject:[MJSecurity Base64Data:strSignature] forKey:@"signature"];
+        } else {
+            LogError(@"RSA签名失败，请检查RSA_PRIVATE_KEY是否正确");
+        }
+    }
+    
+//    // 验签（测试）
+//    if (useSignature) {
+//        NSData *sign = [MJSecurity dataFromDecodeBase64String:dicBody[@"signature"]];
+//        NSData *da = nil;
+//        if (useEncrypt) {
+//            da = [MJSecurity dataFromDecodeBase64String:dicBody[@"encryptData"]];
+//        } else {
+//            da = [jsonData dataUsingEncoding:NSUTF8StringEncoding];
+//        }
+//        BOOL pass = [MJSecurity RSAVerifySignature:sign withData:da publicKey:ServerPublickey];
+//        NSLog(@"验签： %ld", pass);
+//    }
+    
+    return dicBody;
 }
 
 
@@ -440,6 +518,25 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
 {
     id result = nil;
     @try {
+        
+#ifdef  MODULE_SECURITY
+    // 安全请求的回调
+        if ([respond isKindOfClass:[NSDictionary class]]) {
+            NSString *encryptData = respond[@"encryptData"];
+            if (encryptData) {
+                NSData *data = [MJSecurity dataFromDecodeBase64String:encryptData];
+                NSData *decryptData = [MJSecurity RSADecryptData:data privateKey:RSA_PRIVATE_KEY];
+                if (decryptData) {
+                    NSString *decryptStr = [[NSString alloc] initWithData:decryptData encoding:NSUTF8StringEncoding];
+                    respond = objectFromString(decryptStr, nil);
+                    LogInfo(@"解密成功：%@", respond);
+                } else {
+                    LogError(@"RSA解密失败，请检查RSA_PRIVATE_KEY是否正确");
+                }
+            }
+        }
+#endif
+        
         NSDictionary *aRespond = nil;
         NSError *aErr = nil;
         // 解析json

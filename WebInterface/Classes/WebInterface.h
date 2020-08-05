@@ -25,6 +25,25 @@
 /// 定义该宏定义来设置请求需要保护App包名
 //#define FUN_WEB_INTERFACE_DEVICE_NEED_APP
 
+/// 安全请求
+#ifdef  MODULE_SECURITY
+#define USE_ENCRYPT     @"useEncrypt"       ///< 使用加密请求 （使用：在body中添加"USE_ENCRYPT: @(YES),"）
+#define USE_SIGNATURE   @"useSignature"     ///< 使用签名 （使用：在body中添加"USE_SIGNATURE: @(YES),"）
+
+#ifndef AES_KEY
+#define AES_KEY  @""
+#endif
+
+#ifndef AES_IV
+#define AES_IV  @""
+#endif
+
+#ifndef RSA_PRIVATE_KEY
+#define RSA_PRIVATE_KEY  @""
+#endif
+#endif
+
+
 /// 错误域
 static NSString *const kErrorDomainWebInterface     = @"WebInterface";
 
