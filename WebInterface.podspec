@@ -8,13 +8,13 @@
 
 Pod::Spec.new do |s|
   s.name             = 'WebInterface'
-  s.version          = '0.1.19'
+  s.version          = '0.1.20'
   s.summary          = 'This is a generic web interface.'
 
   s.homepage         = 'https://github.com/Musjoy/WebInterface'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = { 'Raymond' => 'Ray.musjoy@gmail.com' }
-  s.source           = { :git => 'https://github.com/Musjoy/WebInterface.git', :tag => "v-#{s.version}" }
+  s.source           = { :git => 'git@git.musjoy.com:WebInterface.git', :tag => "v-#{s.version}" }
 
   s.ios.deployment_target = '7.0'
 
