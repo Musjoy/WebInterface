@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'WebInterface'
-  s.version          = '0.1.18'
+  s.version          = '0.1.19'
   s.summary          = 'This is a generic web interface.'
 
   s.homepage         = 'https://github.com/Musjoy/WebInterface'
