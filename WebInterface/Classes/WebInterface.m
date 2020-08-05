@@ -261,6 +261,7 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
     return uuid;
 }
 
+#ifdef  MODULE_SECURITY
 /// 安全请求
 + (NSDictionary *)securityRequestBody:(NSDictionary *)body
 {
@@ -325,7 +326,7 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
     
     return dicBody;
 }
-
+#endif
 
 #ifdef MODULE_WEB_INTERFACE_LIST_REQUEST
 + (NSString *)fetchDataListWithModel:(MJListRequest *)requestModel completion:(ActionCompleteBlock)completion
