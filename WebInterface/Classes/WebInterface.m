@@ -177,8 +177,8 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
     // 拼接发送数据
     NSDictionary *aSendDic = [self getWholeRequestData:body];
     
-    LogInfo(@"Server request : \n\n%@\n.", pathUrl);
-    LogDebug(@"Server request Data : %@\n", aSendDic);
+    // LogInfo(@"Server request : \n\n%@\n.", pathUrl);
+    // LogDebug(@"Server request Data : %@\n", aSendDic);
     
 #ifdef  MODULE_SECURITY
     // 安全请求
@@ -230,8 +230,8 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
     // 拼接发送数据
     NSDictionary *aSendDic = [self getWholeRequestData:body];
     
-    LogInfo(@"Server request : \n\n%@\n.", pathUrl);
-    LogDebug(@"Server request Data : %@\n", aSendDic);
+    // LogInfo(@"Server request : \n\n%@\n.", pathUrl);
+    // LogDebug(@"Server request Data : %@\n", aSendDic);
     
 #ifdef  MODULE_SECURITY
     // 安全请求
