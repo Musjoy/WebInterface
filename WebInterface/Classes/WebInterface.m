@@ -530,7 +530,7 @@ static NSString *const kAPITipFailedKey             = @"API_failed";
                 if (decryptData) {
                     NSString *decryptStr = [[NSString alloc] initWithData:decryptData encoding:NSUTF8StringEncoding];
                     respond = objectFromString(decryptStr, nil);
-                    LogInfo(@"解密成功：%@", respond);
+//                    LogInfo(@"解密成功：%@", respond);
                 } else {
                     LogError(@"RSA解密失败，请检查RSA_PRIVATE_KEY是否正确");
                 }
